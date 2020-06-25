@@ -1,6 +1,0 @@
-/home/fred/Desktop/waveqlab3d/Waveqlab/build/CMakeFiles/rebuild_cache.dir
-/home/fred/Desktop/waveqlab3d/Waveqlab/build/CMakeFiles/edit_cache.dir
-/home/fred/Desktop/waveqlab3d/Waveqlab/build/CMakeFiles/test.dir
-/home/fred/Desktop/waveqlab3d/Waveqlab/build/CMakeFiles/docs.dir
-/home/fred/Desktop/waveqlab3d/Waveqlab/build/CMakeFiles/pre_wql3d.dir
-/home/fred/Desktop/waveqlab3d/Waveqlab/build/CMakeFiles/waveqlab3d.dir
