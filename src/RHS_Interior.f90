@@ -34,7 +34,7 @@ contains
      ! compute all spatial derivatives and add interior rates to rates array, no forcing
     call JJU_x6_interior_upwind(F, G, M, type_of_mesh)
     
-    end select
+     end select
   end subroutine RHS_center
 
 
@@ -191,19 +191,20 @@ contains
                call JJU_x6_upwind(x, y, z, F%F, G, G%metricy, Uy)
                call JJU_x6_upwind(x, y, z, F%F, G, G%metricz, Uz)
              
-                rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)) !G%J(x,y,z)) ! 1/(rho*J)
+               ! rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)) !G%J(x,y,z)) ! 1/(rho*J)
                ! lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
 
-               !rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)*G%J(x,y,z)) ! 1/(rho*J)
+               rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)*G%J(x,y,z)) ! 1/(rho*J)
                lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
              
             
              
-               ! compute rates
+               ! compute rates 
+
                DU(1) = (Ux(4) + Uy(7) + Uz(8))*rhoJ_inv
                DU(2) = (Ux(7) + Uy(5) + Uz(9))*rhoJ_inv
                DU(3) = (Ux(8) + Uy(9) + Uz(6))*rhoJ_inv
-
+          
                DU(4) = lambda2mu*Ux(1) + M%M(x,y,z,1)*(Uy(2) + Uz(3))
                DU(5) = lambda2mu*Uy(2) + M%M(x,y,z,1)*(Ux(1) + Uz(3))
                DU(6) = lambda2mu*Uz(3) + M%M(x,y,z,1)*(Ux(1) + Uy(2))
@@ -214,7 +215,7 @@ contains
              
              ! compute pml rhs to be used in runge-kutta time-step
              ! and append pml auxiliary functions to elastic-rates DU
-               call PML(F, M, G, DU, Ux, Uy, Uz, x,y,z,n,rhoJ_inv,lambda2mu)
+               !call PML(F, M, G, DU, Ux, Uy, Uz, x,y,z,n,rhoJ_inv,lambda2mu)
              
              ! add new rates to rates arrays
                F%F%DF(x,y,z,1) = F%F%DF(x,y,z,1) + DU(1)
@@ -311,7 +312,7 @@ contains
              B%F%DF(x, my, z, 1:n) = B%F%DF(x, my, z, 1:n) - tau0/(hy)*U_y(x, z, 1:n)
              if(B%PMLB(3)%pml .EQV. .TRUE.) then
                 B%PMLB(3)%DQ(x, my, z, 1:n) =  B%PMLB(3)%DQ(x, my, z, 1:n) - tau0/(hy)*U_y(x, z, 1:n)
-              end if
+              end if 
           end do
        end do
     end if

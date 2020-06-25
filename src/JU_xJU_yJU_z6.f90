@@ -1314,8 +1314,8 @@ contains
          Js_xU(4:9) = (-0.056872037914692_wp*X_x(x, y, 5, 3)*G%J(x,y,5) *F%F(x,y, 5, 4:n) &
              + 0.522116903633491_wp*X_x(x, y, 4, 3)*G%J(x,y,4) *F%F(x, y, 4, 4:n) &
              + 0.274881516587678_wp*X_x(x, y, 3, 3)*G%J(x,y,3) *F%F(x, y, 3, 4:n) &
-             - 0.888625592417062_wp*X_x(x, y, 4, 2)*G%J(x,y,2) *F%F(x, y, 2, 4:n) &
-             + 0.148499210110585_wp*X_x(x, y, 4, 1)*G%J(x,y,1) *F%F(x, y, 1, 4:n)) 
+             - 0.888625592417062_wp*X_x(x, y, 2, 3)*G%J(x,y,2) *F%F(x, y, 2, 4:n) &
+             + 0.148499210110585_wp*X_x(x, y, 1, 3)*G%J(x,y,1) *F%F(x, y, 1, 4:n)) 
              
  
      end if
@@ -1935,7 +1935,7 @@ contains
                    
                         &+G%metricy(x, y, z, 2)*cby(s+3)*(F%F%F(x  , y+s-1, z , 4:9) ) ! backward difference for velocity field
                    !==========================================================
-
+ 
 
                    DFz(1:3) = DFz(1:3) &
                         &+G%metricz(x, y, z, 3)*cfz(s+3)*(F%F%F(x  , y  , z+s, 1:3))   ! forward difference for velocity field
@@ -1977,7 +1977,7 @@ contains
   end subroutine JJU_x6_interior_upwind
 
 
-
+  
 
 
 end module  JU_xJU_yJU_z6
