@@ -1,58 +1,59 @@
-! waveqlab3d input file: test problem for mms on cartesian grid with friction
+! waveqlab3d input file: test problem for mms on cartesian grid
 
 &problem_list
- name = 'data/cosine_topo2_upw', 
+ name = 'data/zugs_200m_upwind', 
  response = 'elastic',
  problem = 'TPV5',
  nblocks = 2,
- t_final = 10d0,
- fd_type = upwind,
+ t_final =30d0, 
  CFL = 0.5d0,
- coupling = 'locked', 
- type_of_mesh = 'curvilinear', !'cartesian',
+ coupling = 'locked',
+ fd_type = 'upwind',
+ type_of_mesh = 'curvilinear',
  material_source='hard-coded',	
  interpol = F,
  use_topography = T,
+ mollify_source = F,
  w_stride = 2, 
  w_fault = F /
 
 &block_list
-btp(1)%nqrs = 101, 151, 201,
-btp(1)%aqrs = -10d0, 0d0, -10d0,
-btp(1)%bqrs =  0d0, 15d0,  10d0,
+btp(1)%nqrs = 226, 401, 451,
+btp(1)%aqrs = -5d0, 0d0, -5d0,
+btp(1)%bqrs =   40d0, 80d0, 85d0,
 btp(1)%rho_s_p = 2.7d0, 3.464d0, 6d0,
 btp(1)%lqrs = 1, 2, 1,
 btp(1)%rqrs = 0, 1, 1,
-btp(1)%pml_lqrs = F, F, F,
-btp(1)%pml_rqrs = F, F, F,
+btp(1)%pml_lqrs = T, F, T,
+btp(1)%pml_rqrs = F, T, T,
 btp(1)%npml = 12,
 btp(1)%lc = 1d0,
 btp(1)%rc = 0d0,
 btp(1)%profile_type= 'read_from_memomry_fractal',
 btp(1)%topography_type = 'read_topo_from_memory',
-btp(1)%faultsize = 171, 201,
-btp(1)%topography_path= '../inputfile/block1_topo.dat',
-btp(1)%profile_path= '../inputfile/fault_topo.dat',
+btp(1)%faultsize = 401, 451,
+btp(1)%topography_path= '../inputfile/block1_extended_topo_200m_data.dat',
+btp(1)%profile_path= '../inputfile/extended_topo_200m_data_fault.dat',
 btp(1)%material_path(1) = '/home/kduru/Material/OK_homog_lambda_B1',
 btp(1)%material_path(2) = '/home/kduru/Material/OK_homog_mu_B1', 
 btp(1)%material_path(3) = '/home/kduru/Material/OK_homog_rho_B1',
 
-btp(2)%nqrs = 101, 151, 201,
-btp(2)%aqrs =  0d0, 0d0, -10d0,
-btp(2)%bqrs =  10d0, 15d0,  10d0,
+btp(2)%nqrs = 226, 401, 451,
+btp(2)%aqrs = 40d0, 0d0, -5d0,
+btp(2)%bqrs = 85d0, 80d0,  85d0,
 btp(2)%rho_s_p = 2.7d0, 3.464d0, 6d0,
 btp(2)%lqrs = 0, 2, 1,
 btp(2)%rqrs = 1, 1, 1,
-btp(2)%pml_lqrs = F, F, F,
-btp(2)%pml_rqrs = F, F, F,
+btp(2)%pml_lqrs = F, F, T,
+btp(2)%pml_rqrs = T, T, T,
 btp(2)%npml = 12,
 btp(2)%lc = 0d0,
 btp(2)%rc = 1d0,
-btp(2)%profile_type= 'read_from_memomry_fractal',
+btp(2)%profile_type=  'read_from_memomry_fractal',
 btp(2)%topography_type = 'read_topo_from_memory',
-btp(2)%faultsize = 171, 201,
-btp(2)%topography_path= '../inputfile/block2_topo.dat'
-btp(2)%profile_path= '../inputfile/fault_topo.dat',
+btp(2)%faultsize = 401, 451,
+btp(2)%topography_path= '../inputfile/block2_extended_topo_200m_data.dat',
+btp(2)%profile_path= '../inputfile/extended_topo_200m_data_fault.dat',
 btp(2)%material_path(1) = '/home/kduru/Material/OK_homog_lambda_B2',
 btp(2)%material_path(2) = '/home/kduru/Material/OK_homog_mu_B2', 
 btp(2)%material_path(3) = '/home/kduru/Material/OK_homog_rho_B2'/
@@ -61,13 +62,18 @@ btp(2)%material_path(3) = '/home/kduru/Material/OK_homog_rho_B2'/
  use_moment_tensor = T,
  order = 4 /
 
+
 !---begin:tensor_listU---
-'cosine' 0.2d0 0d0 0d0 0d0 0d0 0d0 10d0 0d0 -5d0 1.8d0 -5d0 0
+'LOH_discontinuity' 0.1d0 0d0 0d0 0d0 0d0 0d0 1d3 0d0 10d0 10d0 10d0 0
 !---end:tensor_listU---
 
 !---begin:tensor_listV---
-'cosine' 0.2d0 0d0 0d0 0d0 0d0 0d0 10d0 0d0 -5d0 1.8d0 -5d0 0
-!---end:tensor_listV---  
+'LOH_discontinuity' 0.1d0 0d0 0d0 0d0 0d0 0d0 1d3 0d0 10d0 10d0 10d0 0
+!---end:tensor_listV--- 
+
+
+
+
 
 
 &mms_list
@@ -82,27 +88,18 @@ btp(2)%material_path(3) = '/home/kduru/Material/OK_homog_rho_B2'/
  stride_fields = 1 /
 
 !---begin:station_listU---
- -0d0 -0.89d0 0d0
- -1d0 0d0 2d0
-  -1d0 -0.1365d0 2d0	
- -1d0 -0.49d0 -1d0
- -3d0 -0.2d0 0d0
- -3.5d0 0d0 -3.5d0	
- 0d0 -0.2d0 -3d0
+10d0 -0.9421d0 10d0 !1
+31.6d0 -1.5458d0 37.6d0 !2
+40d0 -2.5022d0 40d0 !3
+68.6d0 -2.2093d0 40d0 !4
+10d0 0d0 10d0 !5
 !---end:station_listU---
 
 !---begin:station_listV---
- 3d0 0d0 4d0
- 4d0 0d0 6d0
- 5d0 0d0 5d0
- 1d0 -0.49d0 1d0
- 3d0 -0.2d0 0d0
- 0d0 -0.2d0 3d0
+10d0 -0.9421d0 10d0 !1
+31.6d0 -1.5458d0 37.6d0 !2
+40d0 -2.5022d0 40d0 !3
+68.6d0 -2.2093d0 40d0 !4
+68.6d0 0d0 40d0 !6
 !---end:station_listV---
-
-
-
-
-
-
 

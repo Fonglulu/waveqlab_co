@@ -8,7 +8,7 @@ contains
     subroutine RHS_Center(F, G, M, type_of_mesh)
 
     use datatypes, only: block_type,block_fields, block_grid_t, block_material
-    use JU_xJU_yJU_z6, only : JJU_x6_interior, JJU_x6_interior_upwind
+    use JU_xJU_yJU_z6, only : JJU_x6_interior, JJU_x5_interior_upwind, JJU_x6_interior_upwind
 
     implicit none
 
@@ -32,8 +32,15 @@ contains
 
     case('upwind')
      ! compute all spatial derivatives and add interior rates to rates array, no forcing
-    call JJU_x6_interior_upwind(F, G, M, type_of_mesh)
+     if (F%order .eq. 5) then 
+          call JJU_x5_interior_upwind(F, G, M, type_of_mesh)
+     endif
     
+
+     if (F%order .eq. 6) then 
+          call JJU_x6_interior_upwind(F, G, M, type_of_mesh)
+
+     endif
      end select
   end subroutine RHS_center
 
@@ -42,7 +49,7 @@ contains
 
     use common, only : wp
     use datatypes, only: block_type, block_fields, block_grid_t, block_material,block_pml
-    use JU_xJU_yJU_z6, only : JJU_x6, JJU_x6_upwind
+    use JU_xJU_yJU_z6, only : JJU_x6, JJU_x5_upwind, JJU_x6_upwind
 
     implicit none
 
@@ -174,71 +181,134 @@ contains
 
 
     case('upwind')
+     if (F%order .eq. 5) then
+     !print *, 'upwind'
+     
+          do z = mz, pz
+               do y = my, py
+                    do x = mx, px
+               
+                    ! cycle if an interior point
+                    if (((iz+1 <= z) .and. (z <= nz - fz)) .and. &
+                         ((iy+1 <= y) .and. (y <= ny - fy)) .and. &
+                         ((ix+1 <= x) .and. (x <= nx - fx))) cycle
+               
+               ! compute spatial derivatives, 6th order accuracyfd_type
+                    call JJU_x5_upwind(x, y, z, F%F, G, G%metricx, Ux)
+                    call JJU_x5_upwind(x, y, z, F%F, G, G%metricy, Uy)
+                    call JJU_x5_upwind(x, y, z, F%F, G, G%metricz, Uz)
+               
+                    ! rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)) !G%J(x,y,z)) ! 1/(rho*J)
+                    ! lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
 
-    !print *, 'upwind'
-    
-     do z = mz, pz
-          do y = my, py
-               do x = mx, px
-             
-               ! cycle if an interior point
-               if (((iz+1 <= z) .and. (z <= nz - fz)) .and. &
-                    ((iy+1 <= y) .and. (y <= ny - fy)) .and. &
-                    ((ix+1 <= x) .and. (x <= nx - fx))) cycle
-             
-             ! compute spatial derivatives, 6th order accuracyfd_type
-               call JJU_x6_upwind(x, y, z, F%F, G, G%metricx, Ux)
-               call JJU_x6_upwind(x, y, z, F%F, G, G%metricy, Uy)
-               call JJU_x6_upwind(x, y, z, F%F, G, G%metricz, Uz)
-             
-               ! rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)) !G%J(x,y,z)) ! 1/(rho*J)
-               ! lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
+                    rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)*G%J(x,y,z)) ! 1/(rho*J)
+                    lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
+               
+               
+               
+                    ! compute rates 
 
-               rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)*G%J(x,y,z)) ! 1/(rho*J)
-               lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
-             
-            
-             
-               ! compute rates 
-
-               DU(1) = (Ux(4) + Uy(7) + Uz(8))*rhoJ_inv
-               DU(2) = (Ux(7) + Uy(5) + Uz(9))*rhoJ_inv
-               DU(3) = (Ux(8) + Uy(9) + Uz(6))*rhoJ_inv
-          
-               DU(4) = lambda2mu*Ux(1) + M%M(x,y,z,1)*(Uy(2) + Uz(3))
-               DU(5) = lambda2mu*Uy(2) + M%M(x,y,z,1)*(Ux(1) + Uz(3))
-               DU(6) = lambda2mu*Uz(3) + M%M(x,y,z,1)*(Ux(1) + Uy(2))
-             
-               DU(7) = M%M(x,y,z,2)*(Uy(1) + Ux(2))
-               DU(8) = M%M(x,y,z,2)*(Uz(1) + Ux(3))
-               DU(9) = M%M(x,y,z,2)*(Uz(2) + Uy(3))
-             
-             ! compute pml rhs to be used in runge-kutta time-step
-             ! and append pml auxiliary functions to elastic-rates DU
-               !call PML(F, M, G, DU, Ux, Uy, Uz, x,y,z,n,rhoJ_inv,lambda2mu)
-             
-             ! add new rates to rates arrays
-               F%F%DF(x,y,z,1) = F%F%DF(x,y,z,1) + DU(1)
-               F%F%DF(x,y,z,2) = F%F%DF(x,y,z,2) + DU(2)
-               F%F%DF(x,y,z,3) = F%F%DF(x,y,z,3) + DU(3)
-               F%F%DF(x,y,z,4) = F%F%DF(x,y,z,4) + DU(4)
-               F%F%DF(x,y,z,5) = F%F%DF(x,y,z,5) + DU(5)
-               F%F%DF(x,y,z,6) = F%F%DF(x,y,z,6) + DU(6)
-               F%F%DF(x,y,z,7) = F%F%DF(x,y,z,7) + DU(7)
-               F%F%DF(x,y,z,8) = F%F%DF(x,y,z,8) + DU(8)
-               F%F%DF(x,y,z,9) = F%F%DF(x,y,z,9) + DU(9)
-             
+                    DU(1) = (Ux(4) + Uy(7) + Uz(8))*rhoJ_inv
+                    DU(2) = (Ux(7) + Uy(5) + Uz(9))*rhoJ_inv
+                    DU(3) = (Ux(8) + Uy(9) + Uz(6))*rhoJ_inv
+               
+                    DU(4) = lambda2mu*Ux(1) + M%M(x,y,z,1)*(Uy(2) + Uz(3))
+                    DU(5) = lambda2mu*Uy(2) + M%M(x,y,z,1)*(Ux(1) + Uz(3))
+                    DU(6) = lambda2mu*Uz(3) + M%M(x,y,z,1)*(Ux(1) + Uy(2))
+               
+                    DU(7) = M%M(x,y,z,2)*(Uy(1) + Ux(2))
+                    DU(8) = M%M(x,y,z,2)*(Uz(1) + Ux(3))
+                    DU(9) = M%M(x,y,z,2)*(Uz(2) + Uy(3))
+               
+                    ! compute pml rhs to be used in runge-kutta time-step
+                    ! and append pml auxiliary functions to elastic-rates DU
+                    ! compute spatial derivatives, 6th order accuracyfd_type                                                                                                         
+                    call PML(F, M, G, DU, Ux, Uy, Uz, x,y,z,n,rhoJ_inv,lambda2mu)
+               
+               ! add new rates to rates arrays
+                    F%F%DF(x,y,z,1) = F%F%DF(x,y,z,1) + DU(1)
+                    F%F%DF(x,y,z,2) = F%F%DF(x,y,z,2) + DU(2)
+                    F%F%DF(x,y,z,3) = F%F%DF(x,y,z,3) + DU(3)
+                    F%F%DF(x,y,z,4) = F%F%DF(x,y,z,4) + DU(4)
+                    F%F%DF(x,y,z,5) = F%F%DF(x,y,z,5) + DU(5)
+                    F%F%DF(x,y,z,6) = F%F%DF(x,y,z,6) + DU(6)
+                    F%F%DF(x,y,z,7) = F%F%DF(x,y,z,7) + DU(7)
+                    F%F%DF(x,y,z,8) = F%F%DF(x,y,z,8) + DU(8)
+                    F%F%DF(x,y,z,9) = F%F%DF(x,y,z,9) + DU(9)
+               
+                    end do
                end do
           end do
-     end do
 
+     endif
+    
+     if (F%order .eq. 6) then
+          !print *, 'upwind'
+          
+               do z = mz, pz
+                    do y = my, py
+                         do x = mx, px
+                    
+                         ! cycle if an interior point
+                         if (((iz+1 <= z) .and. (z <= nz - fz)) .and. &
+                              ((iy+1 <= y) .and. (y <= ny - fy)) .and. &
+                              ((ix+1 <= x) .and. (x <= nx - fx))) cycle
+                    
+                    ! compute spatial derivatives, 6th order accuracyfd_type
+                         call JJU_x6_upwind(x, y, z, F%F, G, G%metricx, Ux)
+                         call JJU_x6_upwind(x, y, z, F%F, G, G%metricy, Uy)
+                         call JJU_x6_upwind(x, y, z, F%F, G, G%metricz, Uz)
+                    
+                         ! rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)) !G%J(x,y,z)) ! 1/(rho*J)
+                         ! lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
+     
+                         rhoJ_inv = 1.0_wp/(M%M(x,y,z,3)*G%J(x,y,z)) ! 1/(rho*J)
+                         lambda2mu = M%M(x,y,z,1) + 2.0_wp*M%M(x,y,z,2) ! lambda+2*mu
+                    
+                    
+                    
+                         ! compute rates 
+     
+                         DU(1) = (Ux(4) + Uy(7) + Uz(8))*rhoJ_inv
+                         DU(2) = (Ux(7) + Uy(5) + Uz(9))*rhoJ_inv
+                         DU(3) = (Ux(8) + Uy(9) + Uz(6))*rhoJ_inv
+                    
+                         DU(4) = lambda2mu*Ux(1) + M%M(x,y,z,1)*(Uy(2) + Uz(3))
+                         DU(5) = lambda2mu*Uy(2) + M%M(x,y,z,1)*(Ux(1) + Uz(3))
+                         DU(6) = lambda2mu*Uz(3) + M%M(x,y,z,1)*(Ux(1) + Uy(2))
+                    
+                         DU(7) = M%M(x,y,z,2)*(Uy(1) + Ux(2))
+                         DU(8) = M%M(x,y,z,2)*(Uz(1) + Ux(3))
+                         DU(9) = M%M(x,y,z,2)*(Uz(2) + Uy(3))
+                    
+                         ! compute pml rhs to be used in runge-kutta time-step
+                         ! and append pml auxiliary functions to elastic-rates DU
+                         ! compute spatial derivatives, 6th order accuracyfd_type                                                                                                         
+                         call PML(F, M, G, DU, Ux, Uy, Uz, x,y,z,n,rhoJ_inv,lambda2mu)
+                    
+                    ! add new rates to rates arrays
+                         F%F%DF(x,y,z,1) = F%F%DF(x,y,z,1) + DU(1)
+                         F%F%DF(x,y,z,2) = F%F%DF(x,y,z,2) + DU(2)
+                         F%F%DF(x,y,z,3) = F%F%DF(x,y,z,3) + DU(3)
+                         F%F%DF(x,y,z,4) = F%F%DF(x,y,z,4) + DU(4)
+                         F%F%DF(x,y,z,5) = F%F%DF(x,y,z,5) + DU(5)
+                         F%F%DF(x,y,z,6) = F%F%DF(x,y,z,6) + DU(6)
+                         F%F%DF(x,y,z,7) = F%F%DF(x,y,z,7) + DU(7)
+                         F%F%DF(x,y,z,8) = F%F%DF(x,y,z,8) + DU(8)
+                         F%F%DF(x,y,z,9) = F%F%DF(x,y,z,9) + DU(9)
+                    
+                         end do
+                    end do
+               end do
+     
+          endif
     end select
 
   end subroutine RHS_near_boundaries
 
-  subroutine impose_boundary_condition(B, mms_vars, t)
+    subroutine impose_boundary_condition(B, mms_vars, t)
 
-    use datatypes, only : block_type, mms_type, boundary_type
+    use datatypes, only : block_type, mms_type, boundary_type, block_material
     use BoundaryConditions, only : BC_Lx, BC_Ly, BC_Lz, BC_Rx, BC_Ry, BC_Rz
 
     implicit none
@@ -249,10 +319,11 @@ contains
 
     integer :: mx, my, mz, px, py, pz, n
     type(boundary_type) :: boundary_vars
-    real(kind = wp) :: tau0, hx, hy, hz                          ! penalty the in x-direction, y-direction, z-direction
+    real(kind = wp) :: rho, mu, lam, tau0, hx, hy, hz                          ! penalty the in x-direction, y-direction, z-direction
 
-    real(kind = wp), dimension(:,:,:), allocatable, save :: U_x, U_y, U_z     ! to hold boundary forcing
-
+    real(kind = wp), dimension(:,:,:), allocatable, save :: U_q, U_r, U_s     ! to hold boundary forcing
+    real(kind = wp) :: U_x(9), U_y(9), U_z(9)     ! to hold boundary forcing
+    
     integer :: x, y, z
 
     boundary_vars = B%boundary_vars
@@ -273,18 +344,29 @@ contains
 
     ! initialize work array
 
-    if (.not.allocated(U_x)) allocate(U_x(my:py,mz:pz,n))
-    if (.not.allocated(U_y)) allocate(U_y(mx:px,mz:pz,n))
-    if (.not.allocated(U_z)) allocate(U_z(mx:px,my:py,n))
+    if (.not.allocated(U_q)) allocate(U_q(my:py,mz:pz,n))
+    if (.not.allocated(U_r)) allocate(U_r(mx:px,mz:pz,n))
+    if (.not.allocated(U_s)) allocate(U_s(mx:px,my:py,n))
 
     ! construct boundary forcing
     if (boundary_vars%Lx > 0) then
-      U_x = BC_Lx(B, boundary_vars%Lx, mms_vars, t)
+       
+       U_q = BC_Lx(B, boundary_vars%Lx, mms_vars, t)
+       
        do z = mz, pz
           do y = my, py
-             B%F%DF(mx, y, z, 1:n) = B%F%DF(mx, y, z, 1:n) - tau0/(hx)*U_x(y, z, 1:n)
+             
+             lam = B%M%M(mx, y, z, 1)
+             mu =  B%M%M(mx, y, z, 2)
+             rho = B%M%M(mx, y, z, 3)
+             
+             call structure(U_x, U_q(y, z, 1:n), rho, mu, lam)
+             
+             B%F%DF(mx, y, z, 1:n) = B%F%DF(mx, y, z, 1:n) - tau0/(hx)*U_x(1:n)
+             
              if(B%PMLB(1)%pml .EQV. .TRUE.) then
-                B%PMLB(1)%DQ(mx, y, z, 1:n) = B%PMLB(1)%DQ(mx, y, z, 1:n) - tau0/(hx)*U_x(y, z, 1:n)
+
+                B%PMLB(1)%DQ(mx, y, z, 1:n) = B%PMLB(1)%DQ(mx, y, z, 1:n) - tau0/(hx)*U_q(y, z, 1:n)
                 
              end if
           end do
@@ -292,12 +374,23 @@ contains
     end if
 
     if (boundary_vars%Rx > 0) then
-       U_x = BC_Rx(B, boundary_vars%Rx, mms_vars, t)
+       
+       U_q = BC_Rx(B, boundary_vars%Rx, mms_vars, t)
+       
        do z = mz, pz
           do y = my, py
-             B%F%DF(px, y, z, 1:n) = B%F%DF(px, y, z, 1:n) - tau0/(hx)*U_x(y, z, 1:n)
+
+             lam = B%M%M(px, y, z, 1)
+             mu =  B%M%M(px, y, z, 2)
+             rho = B%M%M(px, y, z, 3)
+
+             call structure(U_x, U_q(y, z, 1:n), rho, mu, lam)
+
+             B%F%DF(px, y, z, 1:n) = B%F%DF(px, y, z, 1:n) - tau0/(hx)*U_x(1:n)
+       
              if(B%PMLB(2)%pml .EQV. .TRUE.) then
-                B%PMLB(2)%DQ(px, y, z, 1:n) = B%PMLB(2)%DQ(px, y, z, 1:n) - tau0/(hx)*U_x(y, z, 1:n)
+                
+                B%PMLB(2)%DQ(px, y, z, 1:n) = B%PMLB(2)%DQ(px, y, z, 1:n) - tau0/(hx)*U_q(y, z, 1:n)
               
              end if
           end do
@@ -306,24 +399,48 @@ contains
 
 
     if (boundary_vars%Ly > 0) then
-       U_y = BC_Ly(B, boundary_vars%Ly, mms_vars, t)
+       
+       U_r = BC_Ly(B, boundary_vars%Ly, mms_vars, t)
+       
        do z = mz, pz
           do x = mx, px
-             B%F%DF(x, my, z, 1:n) = B%F%DF(x, my, z, 1:n) - tau0/(hy)*U_y(x, z, 1:n)
+
+             lam = B%M%M(x, my, z, 1)
+             mu =  B%M%M(x, my, z, 2)
+             rho = B%M%M(x, my, z, 3)
+
+             call structure(U_y, U_r(x, z, 1:n), rho, mu, lam)
+
+             B%F%DF(x, my, z, 1:n) = B%F%DF(x, my, z, 1:n) - tau0/(hy)*U_y(1:n)
+       
              if(B%PMLB(3)%pml .EQV. .TRUE.) then
-                B%PMLB(3)%DQ(x, my, z, 1:n) =  B%PMLB(3)%DQ(x, my, z, 1:n) - tau0/(hy)*U_y(x, z, 1:n)
-              end if 
+                B%PMLB(3)%DQ(x, my, z, 1:n) =  B%PMLB(3)%DQ(x, my, z, 1:n) - tau0/(hy)*U_r(x, z, 1:n)
+
+             end if
+             
           end do
        end do
     end if
 
     if (boundary_vars%Ry > 0) then
-       U_y = BC_Ry(B, boundary_vars%Ry, mms_vars, t)
+       
+       U_r = BC_Ry(B, boundary_vars%Ry, mms_vars, t)
+       
        do z = mz, pz
           do x = mx, px
-             B%F%DF(x, py, z, 1:n) = B%F%DF(x, py, z, 1:n) - (tau0/(hy))*U_y(x, z, 1:n)
+
+             lam = B%M%M(x, py, z, 1)
+             mu =  B%M%M(x, py, z, 2)
+             rho = B%M%M(x, py, z, 3)
+
+             call structure(U_y, U_r(x, z, 1:n), rho, mu, lam)
+
+             B%F%DF(x, py, z, 1:n) = B%F%DF(x, py, z, 1:n) - tau0/(hy)*U_y(1:n)
+       
              if(B%PMLB(4)%pml .EQV. .TRUE.) then
-                B%PMLB(4)%DQ(x, py, z, 1:n) =  B%PMLB(4)%DQ(x, py, z, 1:n) - tau0/(hy)*U_y(x, z, 1:n)
+           
+                B%PMLB(4)%DQ(x, py, z, 1:n) =  B%PMLB(4)%DQ(x, py, z, 1:n) - tau0/(hy)*U_r(x, z, 1:n)
+                
               end if
           end do
        end do
@@ -331,24 +448,46 @@ contains
 
 
     if (boundary_vars%Lz > 0) then
-       U_z = BC_Lz(B, boundary_vars%Lz, mms_vars, t)
+      
+       U_s = BC_Lz(B, boundary_vars%Lz, mms_vars, t)
+       
        do y = my, py
           do x = mx, px
-             B%F%DF(x, y, mz, 1:n) = B%F%DF(x, y, mz, 1:n) - (tau0/(hz))*U_z(x, y, 1:n)
+
+             lam = B%M%M(x, y, mz, 1)
+             mu =  B%M%M(x, y, mz, 2)
+             rho = B%M%M(x, y, mz, 3)
+
+             call structure(U_z, U_s(x, y, 1:n), rho, mu, lam)
+
+             B%F%DF(x, y, mz, 1:n) = B%F%DF(x, y, mz, 1:n) - tau0/(hz)*U_z(1:n)
+      
              if(B%PMLB(5)%pml .EQV. .TRUE.) then
-                B%PMLB(5)%DQ(x, y, mz, 1:n) = B%PMLB(5)%DQ(x, y, mz, 1:n) - (tau0/(hz))*U_z(x, y, 1:n)
+        
+                B%PMLB(5)%DQ(x, y, mz, 1:n) = B%PMLB(5)%DQ(x, y, mz, 1:n) - (tau0/(hz))*U_s(x, y, 1:n)
              end if
           end do
        end do
     end if
 
     if (boundary_vars%Rz > 0) then
-       U_z = BC_Rz(B, boundary_vars%Rz, mms_vars, t)
+       
+       U_s = BC_Rz(B, boundary_vars%Rz, mms_vars, t)
+
        do y = my, py
           do x = mx, px
-             B%F%DF(x, y, pz, 1:n) = B%F%DF(x, y, pz, 1:n) - (tau0/(hz))*U_z(x, y, 1:n)
+
+             lam = B%M%M(x, y, pz, 1)
+             mu =  B%M%M(x, y, pz, 2)
+             rho = B%M%M(x, y, pz, 3)
+
+             call structure(U_z, U_s(x, y, 1:n), rho, mu, lam)
+
+             B%F%DF(x, y, pz, 1:n) = B%F%DF(x, y, pz, 1:n) - tau0/(hz)*U_z(1:n)
+       
              if(B%PMLB(6)%pml .EQV. .TRUE.) then
-                B%PMLB(6)%DQ(x, y, pz, 1:n) = B%PMLB(6)%DQ(x, y, pz, 1:n) - (tau0/hz)*U_z(x, y, 1:n)
+    
+                B%PMLB(6)%DQ(x, y, pz, 1:n) = B%PMLB(6)%DQ(x, y, pz, 1:n) - (tau0/hz)*U_s(x, y, 1:n)
              end if
           end do
        end do
@@ -462,7 +601,7 @@ contains
    
     
     ! pml parameters
-    integer :: npml
+    integer :: npml, p_deg
     real(kind = wp) :: cfs, dx, dy, dz, d0x, d0y, d0z, Rf                
 
     nx = G%C%nq
@@ -474,22 +613,31 @@ contains
     hq = G%hq
     hr = G%hr
     hs = G%hs
-    
-    
-    cfs = 0.1_wp                     !complex frequency shift
+
     Rf = 1.0e-3_wp                   !relative pml error
+    p_deg = 3                        !pml polynomial degree
+    cfs = 0.5                        !complex frequency shift
+    
+    d0x = 6.0_wp*4.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)
+    d0y	= 6.0_wp*4.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)
+    d0z	= 6.0_wp*4.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)
+     
+    if (F%fd_type .eq. 'upwind') then
 
+       cfs = 1.5_wp                     !complex frequency shift
 
+       ! PML damping strength
+       d0x	= 6.0_wp*1.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)
+       d0y      = 6.0_wp*1.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)
+       d0z      = 6.0_wp*1.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)
+
+    end if
+    
     lam = M%M(x,y,z,1)
     mu  = M%M(x,y,z,2)
     rho = M%M(x,y,z,3)
 
-    d0x = 6.0_wp*4.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)      !damping strength
-    d0y = 6.0_wp*4.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)      !damping strength
-    d0z = 6.0_wp*4.0_wp/(2.0_wp*1.0_wp)*log(1.0_wp/Rf)      !damping strength
-
-   
-    
+ 
     ! z-dependent layer
     if(F%PMLB(5)%pml .EQV. .TRUE.) then
        
@@ -497,7 +645,7 @@ contains
        
        if (z .le. npml) then
           
-          dz = d0z*(abs(real(z-npml)/real(npml)))**3
+          dz = d0z*(abs(real(z-npml)/real(npml)))**p_deg
 
           DU(1) = DU(1) - dz*G%J(x,y,z)*F%PMLB(5)%Q(x,y,z,1)*rhoJ_inv
           DU(2) = DU(2) - dz*G%J(x,y,z)*F%PMLB(5)%Q(x,y,z,2)*rhoJ_inv
@@ -519,26 +667,13 @@ contains
           DU(7) = DU(7) - mu*dz*F%PMLB(5)%Q(x,y,z,7)
           DU(8) = DU(8) - mu*dz*F%PMLB(5)%Q(x,y,z,8)
           DU(9) = DU(9) - mu*dz*F%PMLB(5)%Q(x,y,z,9)
-
-          ! if (F%fd_type .eq. 'upwind') then
-
-          !      F%PMLB(5)%DQ(x,y,z,1) = F%PMLB(5)%DQ(x,y,z,1) + Uz(8) &
-          !           - (dz+cfs)*F%PMLB(5)%Q(x,y,z,1)
-          !      F%PMLB(5)%DQ(x,y,z,2) = F%PMLB(5)%DQ(x,y,z,2) + Uz(9) &
-          !           - (dz+cfs)*F%PMLB(5)%Q(x,y,z,2)
-          !      F%PMLB(5)%DQ(x,y,z,3) = F%PMLB(5)%DQ(x,y,z,3) + Uz(6) &
-          !           - (dz+cfs)*F%PMLB(5)%Q(x,y,z,3)
-          ! else 
-
-               F%PMLB(5)%DQ(x,y,z,1) = F%PMLB(5)%DQ(x,y,z,1) + Uz(8)/G%J(x,y,z) &
-                    - (dz+cfs)*F%PMLB(5)%Q(x,y,z,1)
-               F%PMLB(5)%DQ(x,y,z,2) = F%PMLB(5)%DQ(x,y,z,2) + Uz(9)/G%J(x,y,z) &
-                    - (dz+cfs)*F%PMLB(5)%Q(x,y,z,2)
-               F%PMLB(5)%DQ(x,y,z,3) = F%PMLB(5)%DQ(x,y,z,3) + Uz(6)/G%J(x,y,z) &
-                    - (dz+cfs)*F%PMLB(5)%Q(x,y,z,3)
-          ! end if
           
-          
+          F%PMLB(5)%DQ(x,y,z,1) = F%PMLB(5)%DQ(x,y,z,1) + Uz(8)/G%J(x,y,z) &
+               - (dz+cfs)*F%PMLB(5)%Q(x,y,z,1)
+          F%PMLB(5)%DQ(x,y,z,2) = F%PMLB(5)%DQ(x,y,z,2) + Uz(9)/G%J(x,y,z) &
+               - (dz+cfs)*F%PMLB(5)%Q(x,y,z,2)
+          F%PMLB(5)%DQ(x,y,z,3) = F%PMLB(5)%DQ(x,y,z,3) + Uz(6)/G%J(x,y,z) &
+               - (dz+cfs)*F%PMLB(5)%Q(x,y,z,3)
           
           F%PMLB(5)%DQ(x,y,z,4) = F%PMLB(5)%DQ(x,y,z,4) + 0d0 &
                - (dz+cfs)*F%PMLB(5)%Q(x,y,z,4)
@@ -568,7 +703,7 @@ contains
        
        if (z .ge. nz-npml+1) then
           
-          dz = d0z*(abs(real(z-(nz-npml))/real(npml)))**3
+          dz = d0z*(abs(real(z-(nz-npml))/real(npml)))**p_deg
 
           DU(1) = DU(1) - dz*G%J(x,y,z)*F%PMLB(6)%Q(x,y,z,1)*rhoJ_inv
           DU(2) = DU(2) - dz*G%J(x,y,z)*F%PMLB(6)%Q(x,y,z,2)*rhoJ_inv
@@ -590,28 +725,13 @@ contains
           DU(7) = DU(7) - mu*dz*F%PMLB(6)%Q(x,y,z,7)
           DU(8) = DU(8) - mu*dz*F%PMLB(6)%Q(x,y,z,8)
           DU(9) = DU(9) - mu*dz*F%PMLB(6)%Q(x,y,z,9)
-
-          ! if (F%fd_type .eq. 'upwind') then
-
-          !      F%PMLB(6)%DQ(x,y,z,1) = F%PMLB(6)%DQ(x,y,z,1) + Uz(8) &
-          !           - (dz+cfs)*F%PMLB(6)%Q(x,y,z,1)
-          !      F%PMLB(6)%DQ(x,y,z,2) = F%PMLB(6)%DQ(x,y,z,2) + Uz(9) &
-          !           - (dz+cfs)*F%PMLB(6)%Q(x,y,z,2)
-          !      F%PMLB(6)%DQ(x,y,z,3) = F%PMLB(6)%DQ(x,y,z,3) + Uz(6)&
-          !           - (dz+cfs)*F%PMLB(6)%Q(x,y,z,3)
-
-          ! else
-
-
-               F%PMLB(6)%DQ(x,y,z,1) = F%PMLB(6)%DQ(x,y,z,1) + Uz(8)/G%J(x,y,z) &
-                    - (dz+cfs)*F%PMLB(6)%Q(x,y,z,1)
-               F%PMLB(6)%DQ(x,y,z,2) = F%PMLB(6)%DQ(x,y,z,2) + Uz(9)/G%J(x,y,z) &
-                    - (dz+cfs)*F%PMLB(6)%Q(x,y,z,2)
-               F%PMLB(6)%DQ(x,y,z,3) = F%PMLB(6)%DQ(x,y,z,3) + Uz(6)/G%J(x,y,z) &
-                    - (dz+cfs)*F%PMLB(6)%Q(x,y,z,3)
-
-          ! end if
-
+          
+          F%PMLB(6)%DQ(x,y,z,1) = F%PMLB(6)%DQ(x,y,z,1) + Uz(8)/G%J(x,y,z) &
+               - (dz+cfs)*F%PMLB(6)%Q(x,y,z,1)
+          F%PMLB(6)%DQ(x,y,z,2) = F%PMLB(6)%DQ(x,y,z,2) + Uz(9)/G%J(x,y,z) &
+               - (dz+cfs)*F%PMLB(6)%Q(x,y,z,2)
+          F%PMLB(6)%DQ(x,y,z,3) = F%PMLB(6)%DQ(x,y,z,3) + Uz(6)/G%J(x,y,z) &
+               - (dz+cfs)*F%PMLB(6)%Q(x,y,z,3)
           
           F%PMLB(6)%DQ(x,y,z,4) = F%PMLB(6)%DQ(x,y,z,4) + 0d0 &
                - (dz+cfs)*F%PMLB(6)%Q(x,y,z,4)
@@ -643,7 +763,7 @@ contains
        
        if (y .le. npml) then
           
-          dy = d0y*(abs(real(y-(1+npml))/real(npml)))**3
+          dy = d0y*(abs(real(y-(1+npml))/real(npml)))**p_deg
 
           DU(1) = DU(1) - dy*G%J(x,y,z)*F%PMLB(3)%Q(x,y,z,1)*rhoJ_inv
           DU(2) = DU(2) - dy*G%J(x,y,z)*F%PMLB(3)%Q(x,y,z,2)*rhoJ_inv
@@ -665,34 +785,13 @@ contains
           DU(7) = DU(7) - mu*dy*F%PMLB(3)%Q(x,y,z,7)
           DU(8) = DU(8) - mu*dy*F%PMLB(3)%Q(x,y,z,8)
           DU(9) = DU(9) - mu*dy*F%PMLB(3)%Q(x,y,z,9)
-
-
-          ! if (F%fd_type .eq. 'upwind') then
-
-          !      !print *, 'upwind'
-
-          !      F%PMLB(3)%DQ(x,y,z,1) = F%PMLB(3)%DQ(x,y,z,1) + Uy(7) &
-          !           - (dy+cfs)*F%PMLB(3)%Q(x,y,z,1)
-          !       F%PMLB(3)%DQ(x,y,z,2) = F%PMLB(3)%DQ(x,y,z,2) + Uy(5) &
-          !           - (dy+cfs)*F%PMLB(3)%Q(x,y,z,2)
-          !      F%PMLB(3)%DQ(x,y,z,3) = F%PMLB(3)%DQ(x,y,z,3) + Uy(9) &
-          !           - (dy+cfs)*F%PMLB(3)%Q(x,y,z,3)
-
-
-          ! else
-
-               F%PMLB(3)%DQ(x,y,z,1) = F%PMLB(3)%DQ(x,y,z,1) + Uy(7)/G%J(x,y,z) &
-                    - (dy+cfs)*F%PMLB(3)%Q(x,y,z,1)
-               F%PMLB(3)%DQ(x,y,z,2) = F%PMLB(3)%DQ(x,y,z,2) + Uy(5)/G%J(x,y,z) &
-                    - (dy+cfs)*F%PMLB(3)%Q(x,y,z,2)
-               F%PMLB(3)%DQ(x,y,z,3) = F%PMLB(3)%DQ(x,y,z,3) + Uy(9)/G%J(x,y,z) &
-                    - (dy+cfs)*F%PMLB(3)%Q(x,y,z,3)
-
-          ! end if
-
-
           
-
+          F%PMLB(3)%DQ(x,y,z,1) = F%PMLB(3)%DQ(x,y,z,1) + Uy(7)/G%J(x,y,z) &
+               - (dy+cfs)*F%PMLB(3)%Q(x,y,z,1)
+          F%PMLB(3)%DQ(x,y,z,2) = F%PMLB(3)%DQ(x,y,z,2) + Uy(5)/G%J(x,y,z) &
+               - (dy+cfs)*F%PMLB(3)%Q(x,y,z,2)
+          F%PMLB(3)%DQ(x,y,z,3) = F%PMLB(3)%DQ(x,y,z,3) + Uy(9)/G%J(x,y,z) &
+               - (dy+cfs)*F%PMLB(3)%Q(x,y,z,3)
           
           F%PMLB(3)%DQ(x,y,z,4) = F%PMLB(3)%DQ(x,y,z,4) + 0d0 &
                - (dy+cfs)*F%PMLB(3)%Q(x,y,z,4)
@@ -724,7 +823,7 @@ contains
        
        if (y .ge. ny-npml+1) then
           
-          dy = d0y*(abs(real(y-(ny-npml))/real(npml)))**3
+          dy = d0y*(abs(real(y-(ny-npml))/real(npml)))**p_deg
 
           DU(1) = DU(1) - dy*G%J(x,y,z)*F%PMLB(4)%Q(x,y,z,1)*rhoJ_inv
           DU(2) = DU(2) - dy*G%J(x,y,z)*F%PMLB(4)%Q(x,y,z,2)*rhoJ_inv
@@ -746,32 +845,13 @@ contains
           DU(7) = DU(7) - mu*dy*F%PMLB(4)%Q(x,y,z,7)
           DU(8) = DU(8) - mu*dy*F%PMLB(4)%Q(x,y,z,8)
           DU(9) = DU(9) - mu*dy*F%PMLB(4)%Q(x,y,z,9)
-
-          ! if (F%fd_type .eq. 'upwind') then
-
-          !      F%PMLB(4)%DQ(x,y,z,1) = F%PMLB(4)%DQ(x,y,z,1) + Uy(7) &
-          !           - (dy+cfs)*F%PMLB(4)%Q(x,y,z,1)
-          !      F%PMLB(4)%DQ(x,y,z,2) = F%PMLB(4)%DQ(x,y,z,2) + Uy(5) &
-          !           - (dy+cfs)*F%PMLB(4)%Q(x,y,z,2)
-          !      F%PMLB(4)%DQ(x,y,z,3) = F%PMLB(4)%DQ(x,y,z,3) + Uy(9) &
-          !           - (dy+cfs)*F%PMLB(4)%Q(x,y,z,3)
-
-
-          ! else
-
-               F%PMLB(4)%DQ(x,y,z,1) = F%PMLB(4)%DQ(x,y,z,1) + Uy(7)/G%J(x,y,z) &
-                    - (dy+cfs)*F%PMLB(4)%Q(x,y,z,1)
-               F%PMLB(4)%DQ(x,y,z,2) = F%PMLB(4)%DQ(x,y,z,2) + Uy(5)/G%J(x,y,z) &
-                    - (dy+cfs)*F%PMLB(4)%Q(x,y,z,2)
-               F%PMLB(4)%DQ(x,y,z,3) = F%PMLB(4)%DQ(x,y,z,3) + Uy(9)/G%J(x,y,z) &
-                    - (dy+cfs)*F%PMLB(4)%Q(x,y,z,3)
-
-
-          ! end if
-
-
           
-
+          F%PMLB(4)%DQ(x,y,z,1) = F%PMLB(4)%DQ(x,y,z,1) + Uy(7)/G%J(x,y,z) &
+               - (dy+cfs)*F%PMLB(4)%Q(x,y,z,1)
+          F%PMLB(4)%DQ(x,y,z,2) = F%PMLB(4)%DQ(x,y,z,2) + Uy(5)/G%J(x,y,z) &
+               - (dy+cfs)*F%PMLB(4)%Q(x,y,z,2)
+          F%PMLB(4)%DQ(x,y,z,3) = F%PMLB(4)%DQ(x,y,z,3) + Uy(9)/G%J(x,y,z) &
+               - (dy+cfs)*F%PMLB(4)%Q(x,y,z,3)
           
           F%PMLB(4)%DQ(x,y,z,4) = F%PMLB(4)%DQ(x,y,z,4) + 0d0 &
                - (dy+cfs)*F%PMLB(4)%Q(x,y,z,4)
@@ -802,7 +882,7 @@ contains
        
        if (x .le. npml) then
           
-          dx = d0x*(abs(real(x-(1+npml))/real(npml)))**3
+          dx = d0x*(abs(real(x-(1+npml))/real(npml)))**p_deg
           
           DU(1) = DU(1) - dx*G%J(x,y,z)*F%PMLB(1)%Q(x,y,z,1)*rhoJ_inv
           DU(2) = DU(2) - dx*G%J(x,y,z)*F%PMLB(1)%Q(x,y,z,2)*rhoJ_inv
@@ -824,36 +904,13 @@ contains
           DU(7) = DU(7) - mu*dx*F%PMLB(1)%Q(x,y,z,7)
           DU(8) = DU(8) - mu*dx*F%PMLB(1)%Q(x,y,z,8)
           DU(9) = DU(9) - mu*dx*F%PMLB(1)%Q(x,y,z,9)
-
-
-          ! if (F%fd_type .eq. 'upwind') then
-
-          !      !print *, 'upwind left'
-
-
-          !      F%PMLB(1)%DQ(x,y,z,1) = F%PMLB(1)%DQ(x,y,z,1) + Ux(4) &
-          !           - (dx+cfs)*F%PMLB(1)%Q(x,y,z,1)
-          !      F%PMLB(1)%DQ(x,y,z,2) = F%PMLB(1)%DQ(x,y,z,2) + Ux(7) &
-          !           - (dx+cfs)*F%PMLB(1)%Q(x,y,z,2)
-          !      F%PMLB(1)%DQ(x,y,z,3) = F%PMLB(1)%DQ(x,y,z,3) + Ux(8) &
-          !           - (dx+cfs)*F%PMLB(1)%Q(x,y,z,3)
-
-          ! else
-
-               F%PMLB(1)%DQ(x,y,z,1) = F%PMLB(1)%DQ(x,y,z,1) + Ux(4)/G%J(x,y,z) &
-                    - (dx+cfs)*F%PMLB(1)%Q(x,y,z,1)
-               F%PMLB(1)%DQ(x,y,z,2) = F%PMLB(1)%DQ(x,y,z,2) + Ux(7)/G%J(x,y,z) &
-                    - (dx+cfs)*F%PMLB(1)%Q(x,y,z,2)
-               F%PMLB(1)%DQ(x,y,z,3) = F%PMLB(1)%DQ(x,y,z,3) + Ux(8)/G%J(x,y,z) &
-                    - (dx+cfs)*F%PMLB(1)%Q(x,y,z,3)
-
-
-          ! end if
-
-
-
           
-
+          F%PMLB(1)%DQ(x,y,z,1) = F%PMLB(1)%DQ(x,y,z,1) + Ux(4)/G%J(x,y,z) &
+               - (dx+cfs)*F%PMLB(1)%Q(x,y,z,1)
+          F%PMLB(1)%DQ(x,y,z,2) = F%PMLB(1)%DQ(x,y,z,2) + Ux(7)/G%J(x,y,z) &
+               - (dx+cfs)*F%PMLB(1)%Q(x,y,z,2)
+          F%PMLB(1)%DQ(x,y,z,3) = F%PMLB(1)%DQ(x,y,z,3) + Ux(8)/G%J(x,y,z) &
+               - (dx+cfs)*F%PMLB(1)%Q(x,y,z,3)
           
           F%PMLB(1)%DQ(x,y,z,4) = F%PMLB(1)%DQ(x,y,z,4) + Ux(1) &
                - (dx+cfs)*F%PMLB(1)%Q(x,y,z,4)
@@ -883,7 +940,7 @@ contains
        
        if (x .ge. nx-npml+1) then
           
-          dx = d0x*(abs(real(x-(nx-npml))/real(npml)))**3
+          dx = d0x*(abs(real(x-(nx-npml))/real(npml)))**p_deg
                    
           DU(1) = DU(1) - dx*G%J(x,y,z)*F%PMLB(2)%Q(x,y,z,1)*rhoJ_inv
           DU(2) = DU(2) - dx*G%J(x,y,z)*F%PMLB(2)%Q(x,y,z,2)*rhoJ_inv
@@ -905,35 +962,13 @@ contains
           DU(7) = DU(7) - mu*dx*F%PMLB(2)%Q(x,y,z,7)
           DU(8) = DU(8) - mu*dx*F%PMLB(2)%Q(x,y,z,8)
           DU(9) = DU(9) - mu*dx*F%PMLB(2)%Q(x,y,z,9)
-
-
-
-          ! if (F%fd_type .eq. 'upwind') then
-
-          !      !print *, 'upwind right'
-
-
-          !      F%PMLB(2)%DQ(x,y,z,1) = F%PMLB(2)%DQ(x,y,z,1) + Ux(4) &
-          !           - (dx+cfs)*F%PMLB(2)%Q(x,y,z,1)
-          !      F%PMLB(2)%DQ(x,y,z,2) = F%PMLB(2)%DQ(x,y,z,2) + Ux(7) &
-          !           - (dx+cfs)*F%PMLB(2)%Q(x,y,z,2)
-          !      F%PMLB(2)%DQ(x,y,z,3) = F%PMLB(2)%DQ(x,y,z,3) + Ux(8) &
-          !           - (dx+cfs)*F%PMLB(2)%Q(x,y,z,3)
-
-          ! else
-
-               F%PMLB(2)%DQ(x,y,z,1) = F%PMLB(2)%DQ(x,y,z,1) + Ux(4)/G%J(x,y,z) &
-                    - (dx+cfs)*F%PMLB(2)%Q(x,y,z,1)
-               F%PMLB(2)%DQ(x,y,z,2) = F%PMLB(2)%DQ(x,y,z,2) + Ux(7)/G%J(x,y,z) &
-                    - (dx+cfs)*F%PMLB(2)%Q(x,y,z,2)
-               F%PMLB(2)%DQ(x,y,z,3) = F%PMLB(2)%DQ(x,y,z,3) + Ux(8)/G%J(x,y,z) &
-                    - (dx+cfs)*F%PMLB(2)%Q(x,y,z,3)
-
-          ! end if
-
-
           
-
+          F%PMLB(2)%DQ(x,y,z,1) = F%PMLB(2)%DQ(x,y,z,1) + Ux(4)/G%J(x,y,z) &
+               - (dx+cfs)*F%PMLB(2)%Q(x,y,z,1)
+          F%PMLB(2)%DQ(x,y,z,2) = F%PMLB(2)%DQ(x,y,z,2) + Ux(7)/G%J(x,y,z) &
+               - (dx+cfs)*F%PMLB(2)%Q(x,y,z,2)
+          F%PMLB(2)%DQ(x,y,z,3) = F%PMLB(2)%DQ(x,y,z,3) + Ux(8)/G%J(x,y,z) &
+               - (dx+cfs)*F%PMLB(2)%Q(x,y,z,3)
           
           F%PMLB(2)%DQ(x,y,z,4) = F%PMLB(2)%DQ(x,y,z,4) + Ux(1) &
                - (dx+cfs)*F%PMLB(2)%Q(x,y,z,4)
@@ -957,6 +992,29 @@ contains
     end if    
     
   end subroutine PML
-  
+
+  subroutine structure(Ux, Uq, rho, mu, lam)
+    ! work arrays                                                                                                                                                            
+    real(kind = wp),intent(in)    :: Uq(9)    !to hold derivatives
+    real(kind = wp),intent(in)    :: rho, mu, lam 
+    real(kind = wp),intent(inout) :: Ux(9)
+
+    Ux(1) = 1/rho*Uq(1)
+    Ux(2) = 1/rho*Uq(2)
+    Ux(3) = 1/rho*Uq(3)
+    
+    Ux(4) = (2*mu + lam)*Uq(4) + lam*(Uq(5) + Uq(6))
+    Ux(5) = (2*mu + lam)*Uq(5) + lam*(Uq(4) + Uq(6))
+    Ux(6) = (2*mu + lam)*Uq(6) + lam*(Uq(4) + Uq(5))
+    
+    Ux(7) = mu*Uq(7)
+    Ux(8) = mu*Uq(8)
+    Ux(9) = mu*Uq(9)
+    
+    
+  end subroutine structure
+
 
 end module RHS_Interior
+
+

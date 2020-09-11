@@ -56,7 +56,7 @@ contains
     character(256) :: name, problem,response,fd_type
     integer :: nt, nblocks
     logical :: output_fault_topo, w_fault, interpol, use_topography, mollify_source
-    integer :: w_stride, ny, nz
+    integer :: w_stride, ny, nz, order
     real(kind = wp) :: CFL, t_final, topo
     ! interface conditions
     character(64) :: coupling !< locked, slip-weakening_friction, linear_friction
@@ -73,7 +73,7 @@ contains
     ! namelists to read in parameters
 
     namelist /problem_list/ name, problem,response,nblocks, &
-                            nt, CFL, coupling, fd_type, t_final, &
+                            nt, CFL, coupling, fd_type, order, t_final, &
                             mesh_source, type_of_mesh,material_source, &
                             interpol, w_stride, w_fault, use_topography, topo, mollify_source
 
@@ -102,6 +102,7 @@ contains
     mollify_source = .false.
     topo = 1.0_wp
     fd_type = 'traditional'
+    order = 5
     
 
     read(infile,nml=problem_list,iostat=stat)
@@ -124,6 +125,7 @@ contains
     D%topo = topo
     D%mollify_source = mollify_source 
     D%fd_type = fd_type
+    D%order = order
 
 
 
@@ -212,7 +214,7 @@ contains
        
       if (.not.in_block_comm(i)) cycle
       call init_block(D%mesh_source, D%type_of_mesh, D%material_source,&
-           D%response, D%fd_type,  D%interpol, D%use_topography, topo, D%B(i), &
+           D%response, D%fd_type,  D%order, D%interpol, D%use_topography, topo, D%B(i), &
            problem, btp(i), block_comms(i),infile,i, ny, nz)      
   
       call MPI_Comm_size(block_comms(i),n,ierr)

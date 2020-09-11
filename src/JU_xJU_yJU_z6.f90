@@ -813,7 +813,7 @@ contains
 
 
 
-  subroutine JJU_x6_upwind(x, y, z, F, G, X_x, Ju_x)
+  subroutine JJU_x5_upwind(x, y, z, F, G, X_x, Ju_x)
 
 
      !=================================================================================================
@@ -923,9 +923,640 @@ contains
         
      
         Jq_xU(4:9) = (0.024526198439242_wp*X_x(4, y, z, 1)*G%J(4,y,z) *F%F(4, y, z, 4:n) &
-             + 0.426421404682274_wp*X_x(3, y, z, 1)*G%J(3,y,z) *F%F(3, y, z, 4:n) &
-             + 0.073578595317726_wp*X_x(2, y, z, 1)*G%J(2,y,z) *F%F(2, y, z, 4:n) &
-             - 0.524526198439242_wp*X_x(1, y, z, 1)*G%J(1,y,z) *F%F(1, y, z, 4:n)) 
+             + 0.426421404682274_wp*X_x(3, y, z, 1)*G%J(3,y,z)*F%F(3, y, z, 4:n) &
+             + 0.073578595317726_wp*X_x(2, y, z, 1)*G%J(2,y,z)*F%F(2, y, z, 4:n) &
+             - 0.524526198439242_wp*X_x(1, y, z, 1)*G%J(1,y,z)*F%F(1, y, z, 4:n)) 
+     end if
+ 
+     if (x .eq. 3) then
+        Jq_xU(1:3) =X_x(x, y, z, 1)*(0.037914691943128_wp*F%F(6, y, z, 1:3) &
+             - 0.284360189573460_wp*F%F(5, y, z, 1:3) &
+             + 1.033965244865719_wp*F%F(4, y, z, 1:3) &
+             - 0.274881516587678_wp*F%F(3, y, z, 1:3) &
+             - 0.604265402843602_wp*F%F(2, y, z, 1:3) &
+             + 0.091627172195893_wp*F%F(1, y, z, 1:3)) 
+       
+     ! Backward FD for stress fields
+        Jq_xU(4:9) = (-0.056872037914692_wp*X_x(5, y, z, 1)*G%J(5,y,z) *F%F(5, y, z, 4:n) &
+             + 0.522116903633491_wp*X_x(4, y, z, 1)*G%J(4,y,z) *F%F(4, y, z, 4:n) &
+             + 0.274881516587678_wp*X_x(3, y, z, 1)*G%J(3,y,z) *F%F(3, y, z, 4:n) &
+             - 0.888625592417062_wp*X_x(2, y, z, 1)*G%J(2,y,z) *F%F(2, y, z, 4:n) &
+             + 0.148499210110585_wp*X_x(1, y, z, 1)*G%J(1,y,z) *F%F(1, y, z, 4:n))        
+     end if 
+ 
+     if (x .eq. 4) then
+        Jq_xU(1:3) =   X_x(x, y, z, 1)*(0.032476319350474_wp*F%F(7, y, z, 1:3) &
+             - 0.243572395128552_wp*F%F(6, y, z, 1:3)&
+             + 0.974289580514208_wp*F%F(5, y, z, 1:3)&
+             - 0.316644113667118_wp*F%F(4, y, z, 1:3)&
+             - 0.447225981055480_wp*F%F(3, y, z, 1:3)&
+             - 0.029769959404601_wp*F%F(2, y, z, 1:3)&
+             + 0.030446549391069_wp*F%F(1, y, z, 1:3)) 
+        
+       
+        Jq_xU(4:9) = (-0.048714479025710_wp*X_x(6, y, z, 1)*G%J(6,y,z) *F%F(6, y, z, 4:n) &
+             + 0.487144790257104_wp*X_x(5, y, z, 1)*G%J(5,y,z) *F%F(5, y, z, 4:n)&
+             + 0.316644113667118_wp*X_x(4, y, z, 1)*G%J(4,y,z) *F%F(4, y, z, 4:n)&
+             - 0.885656292286874_wp*X_x(3, y, z, 1)*G%J(3,y,z) *F%F(3, y, z, 4:n) &
+             + 0.116373477672530_wp*X_x(2, y, z, 1)*G%J(2,y,z) *F%F(2, y, z, 4:n) &
+             + 0.014208389715832_wp*X_x(1, y, z, 1)*G%J(1,y,z) *F%F(1, y, z, 4:n))  
+        
+     end if
+ 
+ 
+ 
+     !=========================================================================================================================
+     ! Right boundary closure in x-directyion
+
+     if (x .eq. nx-3) then
+
+         ! Forward FD for velocity fields
+        Jq_xU(1:3) = X_x(x, y, z, 1)*(0.048714479025710_wp*F%F(nx-5, y, z, 1:3)&
+             - 0.487144790257104_wp*F%F(nx-4, y, z, 1:3)&
+             - 0.316644113667118_wp*F%F(nx-3, y, z, 1:3)&
+             + 0.885656292286874_wp*F%F(nx-2, y, z, 1:3)&
+             - 0.116373477672530_wp*F%F(nx-1, y, z, 1:3)&
+             - 0.014208389715832_wp*F%F(nx,   y, z, 1:3))  
+        
+        
+
+
+         ! Backward FD for stress fields
+        Jq_xU(4:9) = (-0.032476319350474_wp*X_x(nx-6, y, z, 1)*G%J(nx-6,y,z)*F%F(nx-6, y, z, 4:n) &
+             + 0.243572395128552_wp*X_x(nx-5, y, z, 1)*G%J(nx-5,y,z)*F%F(nx-5, y, z, 4:n)&
+             - 0.974289580514208_wp*X_x(nx-4, y, z, 1)*G%J(nx-4,y,z)*F%F(nx-4, y, z, 4:n)&
+             + 0.316644113667118_wp*X_x(nx-3, y, z, 1)*G%J(nx-3,y,z)*F%F(nx-3, y, z, 4:n) &
+             + 0.447225981055480_wp*X_x(nx-2, y, z, 1)*G%J(nx-2,y,z)*F%F(nx-2, y, z, 4:n) &
+             + 0.029769959404601_wp*X_x(nx-1, y, z, 1)*G%J(nx-1,y,z)*F%F(nx-1, y, z, 4:n)&
+             - 0.030446549391069_wp*X_x(nx, y, z, 1)*G%J(nx,y,z)*F%F(nx,   y, z, 4:n)) 
+        
+        
+     end if
+ 
+     if (x .eq. nx-2) then
+        Jq_xU(1:3) = X_x(x, y, z, 1)*(0.056872037914692_wp*F%F(nx-4, y, z, 1:3)&
+             - 0.522116903633491_wp*F%F(nx-3, y, z, 1:3)&
+             - 0.274881516587678_wp*F%F(nx-2, y, z, 1:3)&
+             + 0.888625592417062_wp*F%F(nx-1, y, z, 1:3)&
+             - 0.148499210110585_wp*F%F(nx,   y, z, 1:3))
+        
+
+
+        ! Backward FD for stress fields
+         Jq_xU(4:9) = (-0.037914691943128_wp*X_x(nx-5, y, z, 1)*G%J(nx-5,y,z)*F%F(nx-5, y, z, 4:n) &
+               + 0.284360189573460_wp*X_x(nx-4, y, z, 1)*G%J(nx-4,y,z)*F%F(nx-4, y, z, 4:n)&
+               - 1.033965244865719_wp*X_x(nx-3, y, z, 1)*G%J(nx-3,y,z)*F%F(nx-3, y, z, 4:n)&
+               + 0.274881516587678_wp*X_x(nx-2, y, z, 1)*G%J(nx-2,y,z)*F%F(nx-2, y, z, 4:n) &
+               + 0.604265402843602_wp*X_x(nx-1, y, z, 1)*G%J(nx-1,y,z)*F%F(nx-1, y, z, 4:n) &
+               - 0.091627172195893_wp*X_x(nx, y, z, 1)*G%J(nx,y,z)*F%F(nx,   y, z, 4:n)) 
+        
+       
+              
+     end if
+ 
+     if (x .eq. nx-1) then
+        Jq_xU(1:3) = X_x(x, y, z, 1)*(-0.024526198439242_wp*F%F(nx-3, y, z, 1:3)&
+             - 0.426421404682274_wp*F%F(nx-2, y, z, 1:3)&
+             - 0.073578595317726_wp*F%F(nx-1, y, z, 1:3) &
+             + 0.524526198439242_wp*F%F(nx,   y, z, 1:3)) 
+       
+
+          ! Backward FD for stress fields
+        Jq_xU(4:9) = (-0.026755852842809_wp*X_x(nx-4, y, z, 1)*G%J(nx-4,y,z)*F%F(nx-4, y, z, 4:n) &
+             + 0.095875139353400_wp*X_x(nx-3, y, z, 1)*G%J(nx-3,y,z)*F%F(nx-3, y,z, 4:n)&
+             - 0.627090301003345_wp*X_x(nx-2, y, z, 1)*G%J(nx-2,y,z)*F%F(nx-2, y, z, 4:n)&
+             + 0.073578595317726_wp*X_x(nx-1, y, z, 1)*G%J(nx-1,y,z)*F%F(nx-1, y, z, 4:n) &
+             + 0.484392419175028_wp*X_x(nx, y, z, 1)*G%J(nx,y,z)*F%F(nx,   y, z, 4:n)) 
+       
+            
+
+
+     end if
+
+ 
+ 
+ 
+     if (x .eq. nx) then
+        Jq_xU(1:3) =  X_x(x, y, z, 1)*(0.089641434262948_wp*F%F(nx-3, y, z, 1:3)&
+             + 0.231075697211155_wp*F%F(nx-2, y, z, 1:3)&
+             - 1.731075697211155_wp*F%F(nx-1, y, z, 1:3)&
+             + 1.410358565737052_wp*F%F(nx,   y, z, 1:3)) 
+       
+
+     ! Backward FD for stress fields
+        Jq_xU(4:9) = (0.041832669322709_wp*X_x(nx-3, y, z, 1)*G%J(nx-3,y,z) *F%F(nx-3, y,z, 4:n)&
+             + 0.374501992031873_wp*X_x(nx-2, y, z, 1)*G%J(nx-2,y,z)*F%F(nx-2, y, z, 4:n)&
+             - 1.874501992031873_wp*X_x(nx-1, y, z, 1)*G%J(nx-1,y,z)*F%F(nx-1, y, z, 4:n) &
+             + 1.458167330677291_wp*X_x(nx, y, z, 1)*G%J(nx,y,z)*F%F(nx,   y, z, 4:n)) 
+       
+            
+ 
+     end if
+ 
+     !=================================================================
+ 
+ 
+     Jr_xU = 0.0_wp*Jr_xU
+ 
+     !implicit none
+
+
+
+     if ((y .ge. 5) .and. (y .le. ny-4)) then
+        ! forward FD                                                                                                                                                                                         
+        Jr_xU(1:3) = X_x(x, y, z, 2)*(0.05_wp*F%F(x, y-2, z, 1:3)&
+             - 0.5_wp*F%F(x, y-1, z, 1:3)&
+             - 1.0_wp/3.0_wp*F%F(x, y, z, 1:3)&
+             + 1.0_wp*F%F(x, y+1, z, 1:3)&
+             - 0.25_wp*F%F(x, y+2, z, 1:3)&
+             + 1.0_wp/30.0_wp*F%F(x, y+3, z, 1:3))
+
+        ! backward FD                                                                                                                                                                                        
+        Jr_xU(4:9) =  (-1.0_wp/30.0_wp*X_x(x, y-3, z,2)*G%J(x,y-3,z) *F%F(x, y-3, z, 4:n)&
+              + 0.25_wp*X_x(x, y-2, z,2)*G%J(x,y-2,z) *F%F(x, y-2, z, 4:n)&
+              - 1.0_wp*X_x(x, y-1, z,2)*G%J(x,y-1,z) *F%F(x, y-1, z, 4:n)&
+              + 1.0_wp/3.0_wp*X_x(x, y, z,2)*G%J(x,y,z) *F%F(x, y, z, 4:n)&
+              + 0.5_wp*X_x(x, y+1, z,2)*G%J(x,y+1,z) *F%F(x, y+1, z, 4:n)&
+              - 0.05_wp*X_x(x, y+2, z,2)*G%J(x,y+2,z) *F%F(x, y+2, z, 4:n))
+
+
+          !     Jq_xU(4:9) = (-1.0_wp/30.0_wp*X_x(x-3, y, z,1)*G%J(x-3,y,z) * F%F(x-3, y, z, 4:n)&
+          !     + 0.25_wp*X_x(x-2, y, z, 1)*G%J(x-2,y,z) * F%F(x-2, y, z, 4:n)&
+          !     - 1.0_wp*X_x(x-1, y, z, 1)*G%J(x-1,y,z) *F%F(x-1, y, z, 4:n)&
+          !     + 1.0_wp/3.0_wp*X_x(x, y, z, 1)*G%J(x,y,z) *F%F(x, y, z, 4:n)&
+          !     + 0.5_wp*X_x(x+1, y, z, 1)*G%J(x+1,y,z) *F%F(x+1, y, z, 4:n)&
+          !     - 0.05_wp*X_x(x+2, y, z, 1)*G%J(x+2,y,z) *F%F(x+2, y, z, 4:n)) 
+     end if
+
+
+
+     if (y .eq. 1) then
+
+        ! Use forward FD for velocity fields                                                                                                                                                                 
+        Jr_xU(1:3) = X_x(x, y, z, 2)*(- 0.041832669322709_wp*F%F(x, 4, z, 1:3) &
+          - 0.374501992031873_wp*F%F(x, 3, z, 1:3) &
+          + 1.874501992031873_wp*F%F(x, 2, z, 1:3) &
+          - 1.458167330677291_wp*F%F(x, 1, z, 1:3))
+
+        ! Use backward FD for velocity fields                                                                                                                                                                 
+        Jr_xU(4:9) =  (-0.089641434262948_wp*X_x(x, 4, z, 2)*G%J(x,4,z) *F%F(x, 4, z, 4:n) &
+             - 0.231075697211155_wp*X_x(x, 3, z, 2)*G%J(x,3,z) *F%F(x, 3, z, 4:n) &
+             + 1.731075697211155_wp*X_x(x, 2, z, 2)*G%J(x,2,z) *F%F(x, 2, z, 4:n) &
+             - 1.410358565737052_wp*X_x(x, 1, z, 2)*G%J(x,1,z) *F%F(x, 1, z, 4:n))
+     end if
+
+     if (y .eq. 2) then
+
+        ! Use forward FD for velocity fields                                                                                                                                                                  
+        Jr_xU(1:3) = X_x(x, y, z, 2)*(0.026755852842809_wp*F%F(x, 5, z, 1:3) &
+             - 0.095875139353400_wp*F%F(x, 4, z, 1:3) &
+             + 0.627090301003345_wp*F%F(x, 3, z, 1:3) &
+             - 0.073578595317726_wp*F%F(x, 2, z, 1:3) &
+             - 0.484392419175028_wp*F%F(x, 1, z, 1:3))
+
+
+        Jr_xU(4:9) = (0.024526198439242_wp*X_x(x, 4, z, 2)*G%J(x,4,z) *F%F(x, 4, z, 4:n) &
+             + 0.426421404682274_wp*X_x(x, 3, z, 2)*G%J(x,3,z) *F%F(x, 3, z, 4:n) &
+             + 0.073578595317726_wp*X_x(x, 2, z, 2)*G%J(x,2,z) *F%F(x, 2, z, 4:n) &
+             - 0.524526198439242_wp*X_x(x, 1, z, 2)*G%J(x,1,z) *F%F(x, 1, z, 4:n))
+     end if
+
+     if (y .eq. 3) then
+        Jr_xU(1:3) =X_x(x, y, z, 2)*(0.037914691943128_wp*F%F(x, 6, z, 1:3) &
+             - 0.284360189573460_wp*F%F(x, 5, z, 1:3) &
+             + 1.033965244865719_wp*F%F(x, 4, z, 1:3) &
+             - 0.274881516587678_wp*F%F(x, 3, z, 1:3) &
+             - 0.604265402843602_wp*F%F(x, 2, z, 1:3) &
+             + 0.091627172195893_wp*F%F(x, 1, z, 1:3))
+
+     ! Backward FD for stress fields                                                                                                                                                                          
+        Jr_xU(4:9) = (-0.056872037914692_wp*X_x(x, 5, z, 2)*G%J(x,5,z) *F%F(x, 5, z, 4:n) &
+             + 0.522116903633491_wp*X_x(x, 4, z, 2)*G%J(x,4,z) *F%F(x, 4, z, 4:n) &
+             + 0.274881516587678_wp*X_x(x, 3, z, 2)*G%J(x,3,z) *F%F(x, 3, z, 4:n) &
+             - 0.888625592417062_wp*X_x(x, 2, z, 2)*G%J(x,2,z) *F%F(x, 2, z, 4:n) &
+             + 0.148499210110585_wp*X_x(x, 1, z, 2)*G%J(x,1,z) *F%F(x, 1, z, 4:n))
+     end if
+
+     if (y .eq. 4) then
+        Jr_xU(1:3) =   X_x(x, y, z, 2)*(0.032476319350474_wp*F%F(x, 7, z, 1:3) &
+             - 0.243572395128552_wp*F%F(x, 6, z, 1:3)&
+             + 0.974289580514208_wp*F%F(x, 5, z, 1:3)&
+             - 0.316644113667118_wp*F%F(x, 4, z, 1:3)&
+             - 0.447225981055480_wp*F%F(x, 3, z, 1:3)&
+             - 0.029769959404601_wp*F%F(x, 2, z, 1:3)&
+             + 0.030446549391069_wp*F%F(x, 1, z, 1:3))
+
+        Jr_xU(4:9) = (-0.048714479025710_wp*X_x(x, 6, z, 2)*G%J(x,6,z) *F%F(x, 6, z, 4:n) &
+             + 0.487144790257104_wp*X_x(x, 5, z, 2)*G%J(x,5,z) *F%F(x, 5, z, 4:n)&
+             + 0.316644113667118_wp*X_x(x, 4, z, 2)*G%J(x,4,z) *F%F(x, 4, z, 4:n)&
+             - 0.885656292286874_wp*X_x(x, 3, z, 2)*G%J(x,3,z) *F%F(x, 3, z, 4:n) &
+             + 0.116373477672530_wp*X_x(x, 2, z, 2)*G%J(x,2,z) *F%F(x, 2, z, 4:n) &
+             + 0.014208389715832_wp*X_x(x, 1, z, 2)*G%J(x,1,z) *F%F(x, 1, z, 4:n))
+
+
+     end if
+
+
+     !=========================================================================================================================                                                                               
+     ! Right boundary closure in y-direction                                                                                                                                                                 
+
+     if (y .eq. ny-3) then
+        ! Forward FD for velocity fields                                                                                                                                                                     
+        Jr_xU(1:3) = X_x(x, y, z, 2)*(0.048714479025710_wp*F%F(x, ny-5, z, 1:3)&
+             - 0.487144790257104_wp*F%F(x, ny-4, z, 1:3)&
+             - 0.316644113667118_wp*F%F(x, ny-3, z, 1:3)&
+             + 0.885656292286874_wp*F%F(x, ny-2, z, 1:3)&
+             - 0.116373477672530_wp*F%F(x, ny-1, z, 1:3)&
+             - 0.014208389715832_wp*F%F(x,   ny, z, 1:3))
+
+        ! Backward FD for stress fields                                                                                                                                                                      
+        Jr_xU(4:9) = (-0.032476319350474_wp*X_x(x, ny-6, z, 2)*G%J(x,ny-6,z) *F%F(x, ny-6, z, 4:n) &
+             + 0.243572395128552_wp*X_x(x, ny-5, z, 2)*G%J(x,ny-5,z) *F%F(x, ny-5, z, 4:n)&
+             - 0.974289580514208_wp*X_x(x, ny-4, z, 2)*G%J(x,ny-4,z) *F%F(x, ny-4, z, 4:n)&
+             + 0.316644113667118_wp*X_x(x, ny-3, z, 2)*G%J(x,ny-3,z) *F%F(x, ny-3, z, 4:n) &
+             + 0.447225981055480_wp*X_x(x, ny-2, z, 2)*G%J(x,ny-2,z) *F%F(x, ny-2, z, 4:n) &
+             + 0.029769959404601_wp*X_x(x, ny-1, z, 2)*G%J(x,ny-1,z) *F%F(x, ny-1, z, 4:n)&
+             - 0.030446549391069_wp*X_x(x, ny, z, 2)*G%J(x,ny,z) *F%F(x,   ny, z, 4:n))
+
+
+     end if
+
+     if (y .eq. ny-2) then
+        ! Forward FD for velocity fields  
+        Jr_xU(1:3) = X_x(x, y, z, 2)*(0.056872037914692_wp*F%F(x, ny-4, z, 1:3)&
+             - 0.522116903633491_wp*F%F(x, ny-3, z, 1:3)&
+             - 0.274881516587678_wp*F%F(x, ny-2, z, 1:3)&
+             + 0.888625592417062_wp*F%F(x, ny-1, z, 1:3)&
+             - 0.148499210110585_wp*F%F(x,   ny, z, 1:3))
+       
+        ! Backward FD for stress fields                                                                                                                                                                      
+         Jr_xU(4:9) =(-0.037914691943128_wp*X_x(x, ny-5, z, 2)*G%J(x,ny-5,z) *F%F(x, ny-5, z, 4:n) &
+               + 0.284360189573460_wp*X_x(x, ny-4, z, 2)*G%J(x,ny-4,z) *F%F(x, ny-4, z, 4:n)&
+               - 1.033965244865719_wp*X_x(x, ny-3, z, 2)*G%J(x,ny-3,z) *F%F(x, ny-3, z, 4:n)&
+               + 0.274881516587678_wp*X_x(x, ny-2, z, 2)*G%J(x,ny-2,z) *F%F(x, ny-2, z, 4:n) &
+               + 0.604265402843602_wp*X_x(x, ny-1, z, 2)*G%J(x,ny-1,z) *F%F(x, ny-1, z, 4:n) &
+               - 0.091627172195893_wp*X_x(x, ny, z, 2)*G%J(x,ny,z) *F%F(x,   ny, z, 4:n))
+
+     end if
+
+     if (y .eq. ny-1) then
+        Jr_xU(1:3) = X_x(x, y, z, 2)*(-0.024526198439242_wp*F%F(x, ny-3, z, 1:3)&
+             - 0.426421404682274_wp*F%F(x, ny-2, z, 1:3)&
+             - 0.073578595317726_wp*F%F(x, ny-1, z, 1:3) &
+             + 0.524526198439242_wp*F%F(x,   ny, z, 1:3))
+        
+          ! Backward FD for stress fields                                                                                                                                                                    
+        Jr_xU(4:9) = (-0.026755852842809_wp*X_x(x, ny-4, z, 2)*G%J(x,ny-4,z) *F%F(x, ny-4, z, 4:n) &
+             + 0.095875139353400_wp*X_x(x, ny-3, z, 2)*G%J(x,ny-3,z) *F%F(x, ny-3,z, 4:n)&
+             - 0.627090301003345_wp*X_x(x, ny-2, z, 2)*G%J(x,ny-2,z) *F%F(x, ny-2, z, 4:n)&
+             + 0.073578595317726_wp*X_x(x, ny-1, z, 2)*G%J(x,ny-1,z) *F%F(x, ny-1, z, 4:n) &
+             + 0.484392419175028_wp*X_x(x, ny, z, 2)*G%J(x,ny,z) *F%F(x,   ny, z, 4:n))
+     end if
+
+      if (y .eq. ny) then
+        Jr_xU(1:3) =  X_x(x, y, z, 2)*(0.089641434262948_wp*F%F(x, ny-3, z, 1:3)&
+             + 0.231075697211155_wp*F%F(x, ny-2, z, 1:3)&
+             - 1.731075697211155_wp*F%F(x, ny-1, z, 1:3)&
+             + 1.410358565737052_wp*F%F(x,   ny, z, 1:3))
+
+
+     ! Backward FD for stress fields                                                                                                                                                                          
+        Jr_xU(4:9) = (0.041832669322709_wp*X_x(x, ny-3, z, 2)*G%J(x,ny-3,z) *F%F(x, ny-3,z, 4:n)&
+             + 0.374501992031873_wp*X_x(x, ny-2, z, 2)*G%J(x,ny-2,z) *F%F(x, ny-2, z, 4:n)&
+             - 1.874501992031873_wp*X_x(x, ny-1, z, 2)*G%J(x,ny-1,z) *F%F(x, ny-1, z, 4:n) &
+             + 1.458167330677291_wp*X_x(x, ny, z, 2)*G%J(x,ny,z) *F%F(x,   ny, z, 4:n))
+
+
+     end if
+
+     !=================================================================    
+     !======================================================================
+ 
+ 
+ 
+     Js_xU = 0.0_wp*Js_xU
+
+     if ((z .ge. 5) .and. (z .le. nz-4)) then
+
+          Js_xU(1:3) = X_x(x, y, z, 3)*(0.05_wp*F%F(x, y, z-2, 1:3)&
+               - 0.5_wp*F%F(x, y, z-1, 1:3)&
+               - 1.0_wp/3.0_wp*F%F(x, y, z, 1:3)&
+               + 1.0_wp*F%F(x, y, z+1, 1:3)&
+               - 0.25_wp*F%F(x, y, z+2, 1:3)&
+               + 1.0_wp/30.0_wp*F%F(x, y, z+3, 1:3)) 
+             
+  
+          Js_xU(4:9) =  (-1.0_wp/30.0_wp*X_x(x, y, z-3,3)*G%J(x,y,z-3) *F%F(x, y, z-3, 4:n)&
+               + 0.25_wp*X_x(x, y, z-2,3)*G%J(x,y,z-2) *F%F(x, y, z-2, 4:n)&
+               - 1.0_wp*X_x(x, y, z-1,3)*G%J(x,y,z-1) *F%F(x, y, z-1, 4:n)&
+               + 1.0_wp/3.0_wp*X_x(x, y, z,3)*G%J(x,y,z) *F%F(x, y, z, 4:n)&
+               + 0.5_wp*X_x(x, y, z+1,3)*G%J(x,y,z+1) *F%F(x, y, z+1, 4:n)&
+               - 0.05_wp*X_x(x, y, z+2,3)*G%J(x,y,z+2) *F%F(x, y, z+2, 4:n)) 
+
+          !     Jq_xU(4:9) = (-1.0_wp/30.0_wp*X_x(x-3, y, z,1)*G%J(x-3,y,z) * F%F(x-3, y, z, 4:n)&
+          !     + 0.25_wp*X_x(x-2, y, z, 1)*G%J(x-2,y,z) * F%F(x-2, y, z, 4:n)&
+          !     - 1.0_wp*X_x(x-1, y, z, 1)*G%J(x-1,y,z) *F%F(x-1, y, z, 4:n)&
+          !     + 1.0_wp/3.0_wp*X_x(x, y, z, 1)*G%J(x,y,z) *F%F(x, y, z, 4:n)&
+          !     + 0.5_wp*X_x(x+1, y, z, 1)*G%J(x+1,y,z) *F%F(x+1, y, z, 4:n)&
+          !     - 0.05_wp*X_x(x+2, y, z, 1)*G%J(x+2,y,z) *F%F(x+2, y, z, 4:n)) 
+             
+   
+   
+       end if
+ 
+     if (z .eq.  1) then
+
+        Js_xU(1:3) =  X_x(x, y, z, 3)*(- 0.041832669322709_wp*F%F(x, y, 4, 1:3)&
+             - 0.374501992031873_wp*F%F(x, y, 3, 1:3)&
+             + 1.874501992031873_wp*F%F(x, y, 2, 1:3)&
+             - 1.458167330677291_wp*F%F(x, y, 1, 1:3)) 
+             
+
+       ! Backward FD for stress fields
+         Js_xU(4:9) =  (-0.089641434262948_wp*X_x(x, y, 4, 3)*G%J(x,y,4) *F%F(x, y, 4, 4:n) &
+             - 0.231075697211155_wp*X_x(x, y, 3,3)*G%J(x,y,3) *F%F(x, y, 3, 4:n) &
+             + 1.731075697211155_wp*X_x(x, y, 2,3)*G%J(x,y,2) *F%F(x, y, 2, 4:n) &
+             - 1.410358565737052_wp*X_x(x, y, 1,3)*G%J(x,y,1) *F%F(x, y, 1, 4:n)) 
+             
+     end if
+ 
+ 
+ 
+ 
+     if (z .eq.  2) then
+        Js_xU(1:3) = X_x(x, y, z, 3)*(0.026755852842809_wp*F%F(x, y, 5, 1:3)&
+             - 0.095875139353400_wp*F%F(x, y, 4, 1:3)&
+             + 0.627090301003345_wp*F%F(x, y, 3, 1:3)&
+             - 0.073578595317726_wp*F%F(x, y, 2, 1:3)& 
+             - 0.484392419175028_wp*F%F(x, y, 1, 1:3))  
+             
+
+        Js_xU(4:9) = (0.024526198439242_wp*X_x(x, y, 4, 3)*G%J(x,y,4) *F%F(x, y, 4, 4:n) &
+             + 0.426421404682274_wp*X_x(x, y, 3, 3)*G%J(x,y,3) *F%F(x, y, 3, 4:n) &
+             + 0.073578595317726_wp*X_x(x, y, 2, 3)*G%J(x,y,2) *F%F(x, y, 2, 4:n) &
+             - 0.524526198439242_wp*X_x(x, y, 1, 3)*G%J(x,y,1) *F%F(x, y, 1, 4:n)) 
+             
+     end if
+ 
+ 
+ 
+     if (z .eq.  3) then
+        Js_xU(1:3)  = X_x(x, y, z, 3)*(0.037914691943128_wp*F%F(x, y, 6, 1:3)&
+             - 0.284360189573460_wp*F%F(x, y, 5, 1:3)&
+             + 1.033965244865719_wp*F%F(x, y, 4, 1:3)&
+             - 0.274881516587678_wp*F%F(x, y, 3, 1:3)&
+             - 0.604265402843602_wp*F%F(x, y, 2, 1:3)&
+             + 0.091627172195893_wp*F%F(x, y, 1, 1:3)) 
+             
+             
+
+           ! Backward FD for stress fields
+         Js_xU(4:9) = (-0.056872037914692_wp*X_x(x, y, 5, 3)*G%J(x,y,5) *F%F(x,y, 5, 4:n) &
+             + 0.522116903633491_wp*X_x(x, y, 4, 3)*G%J(x,y,4) *F%F(x, y, 4, 4:n) &
+             + 0.274881516587678_wp*X_x(x, y, 3, 3)*G%J(x,y,3) *F%F(x, y, 3, 4:n) &
+             - 0.888625592417062_wp*X_x(x, y, 2, 3)*G%J(x,y,2) *F%F(x, y, 2, 4:n) &
+             + 0.148499210110585_wp*X_x(x, y, 1, 3)*G%J(x,y,1) *F%F(x, y, 1, 4:n)) 
+             
+ 
+     end if
+ 
+ 
+     if (z .eq.  4) then
+        Js_xU(1:3) = X_x(x, y, z, 3)*(0.032476319350474*F%F(x, y, 7, 1:3)&
+             - 0.243572395128552_wp*F%F(x, y, 6, 1:3)&
+             + 0.974289580514208_wp*F%F(x, y, 5, 1:3)&
+             - 0.316644113667118_wp*F%F(x, y, 4, 1:3)&
+             - 0.447225981055480_wp*F%F(x, y, 3, 1:3)&
+             - 0.029769959404601_wp*F%F(x, y, 2, 1:3)&
+             + 0.030446549391069_wp*F%F(x, y, 1, 1:3))  
+             
+             
+
+
+
+        Js_xU(4:9) = (-0.048714479025710_wp*X_x(x, y, 6, 3)*G%J(x,y,6) *F%F(x, y, 6, 4:n) &
+             + 0.487144790257104_wp*X_x(x, y, 5, 3)*G%J(x,y,5) *F%F(x, y, 5, 4:n)&
+             + 0.316644113667118_wp*X_x(x, y, 4, 3)*G%J(x,y,4) *F%F(x, y, 4, 4:n)&
+             - 0.885656292286874_wp*X_x(x, y, 3, 3)*G%J(x,y,3) *F%F(x, y, 3, 4:n) &
+             + 0.116373477672530_wp*X_x(x, y, 2, 3)*G%J(x,y,2) *F%F(x, y, 2, 4:n) & 
+             + 0.014208389715832_wp*X_x(x, y, 1, 3)*G%J(x,y,1) *F%F(x, y, 1, 4:n))  
+             
+             
+
+ 
+     end if
+ 
+ 
+ 
+     if (z .eq.   nz-3) then
+        Js_xU(1:3) =  X_x(x, y, z, 3)*(0.048714479025710_wp*F%F(x, y, nz-5, 1:3)&
+             - 0.487144790257104_wp*F%F(x, y, nz-4, 1:3)&
+             - 0.316644113667118_wp*F%F(x, y, nz-3, 1:3)&
+             + 0.885656292286874_wp*F%F(x, y, nz-2, 1:3)&
+             - 0.116373477672530_wp*F%F(x, y, nz-1, 1:3)&
+             - 0.014208389715832_wp*F%F(x, y, nz,   1:3)) 
+             
+             
+
+     
+             ! Backward FD for stress fields
+        Js_xU(4:9) = (-0.032476319350474_wp*X_x(x, y, nz-6, 3)*G%J(x,y,nz-6) *F%F(x, y, nz-6,4:n) &
+             + 0.243572395128552_wp*X_x(x, y, nz-5, 3)*G%J(x,y,nz-5) *F%F(x, y, nz-5, 4:n)&
+             - 0.974289580514208_wp*X_x(x, y, nz-4, 3)*G%J(x,y,nz-4) *F%F(x, y, nz-4, 4:n)&
+             + 0.316644113667118_wp*X_x(x, y, nz-3, 3)*G%J(x,y,nz-3) *F%F(x, y, nz-3, 4:n) &
+             + 0.447225981055480_wp*X_x(x, y, nz-2, 3)*G%J(x,y,nz-2) *F%F(x, y, nz-2, 4:n) &
+             + 0.029769959404601_wp*X_x(x, y, nz-1, 3)*G%J(x,y,nz-1) *F%F(x, y, nz-1, 4:n)&
+             - 0.030446549391069_wp*X_x(x, y, nz, 3)*G%J(x,y,nz) *F%F(x, y, nz,   4:n)) 
+             
+             
+
+     end if
+ 
+ 
+ 
+     if (z .eq. nz-2) then
+          
+        Js_xU(1:3) = X_x(x, y, z, 3)*(0.056872037914692_wp*F%F(x, y, nz-4, 1:3)&
+             - 0.522116903633491_wp*F%F(x, y, nz-3, 1:3)&
+             - 0.274881516587678_wp*F%F(x, y, nz-2, 1:3)&
+             + 0.888625592417062_wp*F%F(x, y, nz-1, 1:3)&
+             - 0.148499210110585_wp*F%F(x, y, nz,   1:3)) 
+             
+
+               ! Backward FD for stress fields
+        Js_xU(4:9) = (-0.037914691943128_wp*X_x(x, y, nz-5, 3)*G%J(x,y,nz-5) *F%F(x, y, nz-5, 4:n) &
+             + 0.284360189573460_wp*X_x(x, y, nz-4, 3)*G%J(x,y,nz-4) *F%F(x, y, nz-4, 4:n)&
+             - 1.033965244865719_wp*X_x(x, y, nz-3, 3)*G%J(x,y,nz-3) *F%F(x, y, nz-3, 4:n)&
+             + 0.274881516587678_wp*X_x(x, y, nz-2, 3)*G%J(x,y,nz-2) *F%F(x, y, nz-2, 4:n) &
+             + 0.604265402843602_wp*X_x(x, y, nz-1, 3)*G%J(x,y,nz-1) *F%F(x, y, nz-1, 4:n) &
+             - 0.091627172195893_wp*X_x(x, y, nz, 3)*G%J(x,y,nz) *F%F(x, y, nz,   4:n)) 
+             
+             
+ 
+
+     end if
+ 
+ 
+ 
+     if (z .eq.   nz-1) then
+        Js_xU(1:3) = X_x(x, y, z, 3)*(-0.024526198439242_wp*F%F(x, y, nz-3, 1:3)&
+             - 0.426421404682274_wp*F%F(x, y, nz-2, 1:3)&
+             - 0.073578595317726_wp*F%F(x, y, nz-1, 1:3)&
+             + 0.524526198439242_wp*F%F(x, y, nz,   1:3)) 
+             
+
+                 ! Backward FD for stress fields
+        Js_xU(4:9) = -0.026755852842809_wp*X_x(x, y, nz-4, 3)*G%J(x,y,nz-4) *F%F(x, y, nz-4, 4:n) &
+             + 0.095875139353400_wp*X_x(x, y, nz-3, 3)*G%J(x,y,nz-3) *F%F(x, y, nz-3, 4:n)&
+             - 0.627090301003345_wp*X_x(x, y, nz-2, 3)*G%J(x,y,nz-2) *F%F(x, y, nz-2, 4:n)&
+             + 0.073578595317726_wp*X_x(x, y, nz-1, 3)*G%J(x,y,nz-1) *F%F(x, y, nz-1, 4:n) &
+             + 0.484392419175028_wp*X_x(x, y, nz, 3)*G%J(x,y,nz) *F%F(x, y, nz,   4:n)
+             
+ 
+
+ 
+     end if
+ 
+ 
+     if (z .eq.   nz) then
+ 
+        Js_xU(1:3) = X_x(x, y, z, 3)*(0.089641434262948_wp*F%F(x, y, nz-3, 1:3)&
+             + 0.231075697211155_wp*F%F(x, y, nz-2, 1:3)&
+             - 1.731075697211155_wp*F%F(x, y, nz-1, 1:3)&
+             + 1.410358565737052_wp*F%F(x, y, nz,   1:3)) 
+             
+
+        ! Backward FD for stress fields
+        Js_xU(4:9) = 0.041832669322709_wp*X_x(x, y, nz-3, 3)*G%J(x,y,nz-3) *F%F(x, y, nz-3, 4:n)&
+             + 0.374501992031873_wp*X_x(x, y, nz-2, 3)*G%J(x,y,nz-2) *F%F(x, y, nz-2, 4:n)&
+             - 1.874501992031873_wp*X_x(x, y, nz-1, 3)*G%J(x,y,nz-1) *F%F(x, y, nz-1, 4:n) &
+             + 1.458167330677291_wp*X_x(x, y, nz, 3)*G%J(x,y,nz) *F%F(x, y, nz,   4:n) 
+             
+
+
+ 
+     end if
+
+ 
+
+     Ju_x(1:n) = (1.0_wp/hx)*Jq_xU(1:n) + (1.0_wp/hy)*Jr_xU(1:n) + (1.0_wp/hz)*Js_xU(1:n)
+ 
+   end subroutine JJU_x5_upwind
+
+
+   subroutine JJU_x6_upwind(x, y, z, F, G, X_x, Ju_x)
+
+
+     !=================================================================================================
+     !
+           use datatypes, only: block_fields, block_grid_t
+ 
+     implicit none
+     
+     integer, intent(in) :: x, y, z                      ! indices in the tranformed cordinate
+     type(block_fields), intent(in):: F
+     type(block_grid_t), intent(in) :: G
+     real(kind = wp), dimension(:), intent(out) :: Ju_x            ! metric coefficients
+ 
+     real(kind = wp), dimension(:,:,:,:), allocatable, intent(in) :: X_x   ! the grid
+     real(kind = wp), dimension(:), allocatable, save :: Jq_xU, Jr_xU, Js_xU            ! work array
+     real(kind = wp) :: hx, hy, hz                      ! spatial steps discertizing the unit cube
+     integer :: n, nx, ny, nz
+ 
+     nx = G%C%nq
+     ny = G%C%nr
+     nz = G%C%ns
+ 
+     n = size(F%F, 4)
+ 
+     hx = G%hq
+     hy = G%hr
+     hz = G%hs
+ 
+     ! work arrays:
+     if (.not. allocated(Jq_xU)) allocate(Jq_xU(n))
+     if (.not. allocated(Jr_xU)) allocate(Jr_xU(n))
+     if (.not. allocated(Js_xU)) allocate(Js_xU(n))
+ 
+     !Ju_x = 0.0_wp*Ju_x
+ 
+     Jq_xU = 0.0_wp*Jq_xU
+     ! Jr_xU = 0.0_wp*Jr_xU
+     ! Js_xU = 0.0_wp*Js_xU
+ 
+     ! Compute: (Jq_xU)_q or (Jq_yU)_q or (Jq_zU)_q for stresses
+     ! Compute: q_xU_q or q_yU_q or q_zU_q for displacements
+     !=========================================================================================================================
+     ! Interior approximation: Standard central finite difference approximation
+     !print *, 'metric ',  X_x(x,y,z,1), X_x(x,y,z,2),  X_x(x,y,z,3)
+    
+      if ((x .ge. 5) .and. (x .le. nx-4)) then
+        ! forward FD q_x*du/dq 
+        Jq_xU(1:3) = X_x(x, y, z, 1)*(0.05_wp*F%F(x-2, y, z, 1:3)&
+             - 0.5_wp*F%F(x-1, y, z, 1:3)&
+             - 1.0_wp/3.0_wp*F%F(x, y, z, 1:3)&
+             + 1.0_wp*F%F(x+1, y, z, 1:3)&
+             - 0.25_wp*F%F(x+2, y, z, 1:3)&
+             + 1.0_wp/30.0_wp*F%F(x+3, y, z, 1:3)) 
+
+
+        ! backward FD 
+        ! d(J*q_x*u)/dq
+        Jq_xU(4:9) = (-1.0_wp/30.0_wp*X_x(x-3, y, z,1)*G%J(x-3,y,z) * F%F(x-3, y, z, 4:n)&
+              + 0.25_wp*X_x(x-2, y, z, 1)*G%J(x-2,y,z) * F%F(x-2, y, z, 4:n)&
+              - 1.0_wp*X_x(x-1, y, z, 1)*G%J(x-1,y,z) *F%F(x-1, y, z, 4:n)&
+              + 1.0_wp/3.0_wp*X_x(x, y, z, 1)*G%J(x,y,z) *F%F(x, y, z, 4:n)&
+              + 0.5_wp*X_x(x+1, y, z, 1)*G%J(x+1,y,z) *F%F(x+1, y, z, 4:n)&
+              - 0.05_wp*X_x(x+2, y, z, 1)*G%J(x+2,y,z) *F%F(x+2, y, z, 4:n)) 
+
+
+          !     Jq_xU(4:n) = -1.0_wp/60.0_wp*F%F(x-3, y, z, 4:n)*G%J(x-3, y, z)*X_x(x-3, y, z, 1) &
+          !     + 0.15_wp*F%F(x-2, y, z, 4:n)*G%J(x-2, y, z)*X_x(x-2, y, z, 1) &
+          !     - 0.75_wp*F%F(x-1, y, z, 4:n)*G%J(x-1, y, z)*X_x(x-1, y, z, 1) &
+          !     + 0.75_wp*F%F(x+1, y, z, 4:n)*G%J(x+1, y, z)*X_x(x+1, y, z, 1) &
+          !     - 0.15_wp*F%F(x+2, y, z, 4:n)*G%J(x+2, y, z)*X_x(x+2, y, z, 1) &
+          !     + 1.0_wp/60.0_wp*F%F(x+3, y, z, 4:n)*G%J(x+3, y, z)*X_x(x+3, y, z, 1)
+       
+ 
+     end if
+
+
+
+ 
+
+     ! Special onesided treatments of boundaries
+ 
+     !=========================================================================================================================
+     ! ! Left boundary closure in x-directyion
+     if (x .eq. 1) then
+
+        ! Use forward FD for velocity fields
+        Jq_xU(1:3) = X_x(x, y, z, 1)*(- 0.041832669322709_wp*F%F(4, y, z, 1:3) &
+          - 0.374501992031873_wp*F%F(3, y, z, 1:3) &
+          + 1.874501992031873_wp*F%F(2, y, z, 1:3) &
+          - 1.458167330677291_wp*F%F(1, y, z, 1:3)) 
+        
+        ! Use backward FD for stress fields
+        Jq_xU(4:9) =  (-0.089641434262948_wp*X_x(4, y, z, 1)*G%J(4,y,z) *F%F(4, y, z, 4:n) &
+             - 0.231075697211155_wp*X_x(3, y, z, 1)*G%J(3,y,z) *F%F(3, y, z, 4:n) &
+             + 1.731075697211155_wp*X_x(2, y, z, 1)*G%J(2,y,z) *F%F(2, y, z, 4:n) &
+             - 1.410358565737052_wp*X_x(1, y, z, 1)*G%J(1,y,z) *F%F(1, y, z, 4:n))  
+     end if
+ 
+     if (x .eq. 2) then
+
+        ! Use forward FD for velocity fields
+        Jq_xU(1:3) = X_x(x, y, z, 1)*(0.026755852842809_wp*F%F(5, y, z, 1:3) &
+             - 0.095875139353400_wp*F%F(4, y, z, 1:3) &
+             + 0.627090301003345_wp*F%F(3, y, z, 1:3) &
+             - 0.073578595317726_wp*F%F(2, y, z, 1:3) &
+             - 0.484392419175028_wp*F%F(1, y, z, 1:3)) 
+        
+     
+        Jq_xU(4:9) = (0.024526198439242_wp*X_x(4, y, z, 1)*G%J(4,y,z) *F%F(4, y, z, 4:n) &
+             + 0.426421404682274_wp*X_x(3, y, z, 1)*G%J(3,y,z)*F%F(3, y, z, 4:n) &
+             + 0.073578595317726_wp*X_x(2, y, z, 1)*G%J(2,y,z)*F%F(2, y, z, 4:n) &
+             - 0.524526198439242_wp*X_x(1, y, z, 1)*G%J(1,y,z)*F%F(1, y, z, 4:n)) 
      end if
  
      if (x .eq. 3) then
@@ -1535,9 +2166,9 @@ contains
     if (F%PMLB(2)%pml .EQV. .TRUE.) fx = max(F%PMLB(2)%N_pml, 6)
 
     select case(type_of_mesh)
-
+       
     case('curvilinear') ! locked or welded interface
-
+       
        do z = mz, pz
           do y = my, py
              do x = mx, px
@@ -1683,7 +2314,7 @@ contains
 
   end subroutine JJU_x6_interior
 
-  subroutine JJU_x6_interior_upwind(F, G, M, type_of_mesh)
+  subroutine JJU_x5_interior_upwind(F, G, M, type_of_mesh)
     use datatypes, only: block_type, block_fields, block_grid_t, block_material
 
     implicit none
@@ -1772,142 +2403,82 @@ contains
 
     select case(type_of_mesh)
 
-    case('curvilinear') ! locked or welded interface
+    case('curvilinear') ! locked or welded interface    
 
        do z = mz, pz
           do y = my, py
              do x = mx, px
-
-
-                 ! cycle if an interior point
-             if (((iz+1 > z) .or. (z > nz - fz)) .or. &
-                  ((iy+1 > y) .or. (y > ny - fy)) .or. &
-                  ((ix+1 > x) .or. (x > nx - fx))) cycle
-
+                
+                
+                ! cycle if an interior point
+                if (((iz+1 > z) .or. (z > nz - fz)) .or. &
+                     ((iy+1 > y) .or. (y > ny - fy)) .or. &
+                     ((ix+1 > x) .or. (x > nx - fx))) cycle
+                
                 DFx = 0.0_wp; DFy = 0.0_wp; DFz = 0.0_wp
-
-               !  do s = 1,3
-
-               !     DFx(1:3) = DFx(1:3) &
-               !          + G%metricx(x, y, z, 1)*cfx(s)*(F%F%F(x+s, y  , z  , 1:3) - F%F%F(x-s, y  , z  , 1:3)) &
-               !          + G%metricx(x, y, z, 2)*cfy(s)*(F%F%F(x  , y+s, z  , 1:3) - F%F%F(x  , y-s, z  , 1:3)) &
-               !          + G%metricx(x, y, z, 3)*cfz(s)*(F%F%F(x  , y  , z+s, 1:3) - F%F%F(x  , y  , z-s, 1:3))
-
-
-               !     DFx(4:9) = DFx(4:9) &
-               !     + cbx(s)*( &
-               !          F%F%F(x+s, y  , z  , 4:9)*(G%J(x+s, y  , z  )*G%metricx(x+s, y  , z  , 1))- &
-               !          F%F%F(x-s, y  , z  , 4:9)*(G%J(x-s, y  , z  )*G%metricx(x-s, y  , z  , 1))) &
-               !     + cby(s)*( &
-               !          F%F%F(x  , y+s, z  , 4:9)*(G%J(x  , y+s, z  )*G%metricx(x  , y+s, z  , 2))- &
-               !          F%F%F(x  , y-s, z  , 4:9)*(G%J(x  , y-s, z  )*G%metricx(x  , y-s, z  , 2))) &
-               !     + cbz(s)*( &
-               !          F%F%F(x  , y  , z+s, 4:9)*(G%J(x  , y  , z+s)*G%metricx(x  , y  , z+s, 3))- &
-               !          F%F%F(x  , y  , z-s, 4:9)*(G%J(x  , y  , z-s)*G%metricx(x  , y  , z-s, 3)))
-               !     !==========================================================
-
-               !     DFy(1:3) = DFy(1:3) &
-               !          + G%metricy(x, y, z, 1)*cfx(s)*(F%F%F(x+s, y  , z  , 1:3) - F%F%F(x-s, y  , z  , 1:3)) &
-               !          + G%metricy(x, y, z, 2)*cfy(s)*(F%F%F(x  , y+s, z  , 1:3) - F%F%F(x  , y-s, z  , 1:3)) &
-               !          + G%metricy(x, y, z, 3)*cfz(s)*(F%F%F(x  , y  , z+s, 1:3) - F%F%F(x  , y  , z-s, 1:3))
-
-               !     DFy(4:9) = DFy(4:9) &
-               !     + cbx(s)*( &
-               !          F%F%F(x+s, y  , z  , 4:9)*(G%J(x+s, y  , z  )*G%metricy(x+s, y  , z  , 1))- &
-               !          F%F%F(x-s, y  , z  , 4:9)*(G%J(x-s, y  , z  )*G%metricy(x-s, y  , z  , 1))) &
-               !     + cby(s)*( &
-               !          F%F%F(x  , y+s, z  , 4:9)*(G%J(x  , y+s, z  )*G%metricy(x  , y+s, z  , 2))- &
-               !          F%F%F(x  , y-s, z  , 4:9)*(G%J(x  , y-s, z  )*G%metricy(x  , y-s, z  , 2))) &
-               !     + cbz(s)*( &
-               !          F%F%F(x  , y  , z+s, 4:9)*(G%J(x  , y  , z+s)*G%metricy(x  , y  , z+s, 3))- &
-               !          F%F%F(x  , y  , z-s, 4:9)*(G%J(x  , y  , z-s)*G%metricy(x  , y  , z-s, 3)))
-               !     !==========================================================
-
-               !     DFz(1:3) = DFz(1:3) &
-               !          + G%metricz(x, y, z, 1)*cfx(s)*(F%F%F(x+s, y  , z  , 1:3) - F%F%F(x-s, y  , z  , 1:3)) &
-               !          + G%metricz(x, y, z, 2)*cfy(s)*(F%F%F(x  , y+s, z  , 1:3) - F%F%F(x  , y-s, z  , 1:3)) &
-               !          + G%metricz(x, y, z, 3)*cfz(s)*(F%F%F(x  , y  , z+s, 1:3) - F%F%F(x  , y  , z-s, 1:3))
-
-               !     DFz(4:9) = DFz(4:9) &
-               !     + cbx(s)*( &
-               !          F%F%F(x+s, y  , z  , 4:9)*(G%J(x+s, y  , z  )*G%metricz(x+s, y  , z  , 1))- &
-               !          F%F%F(x-s, y  , z  , 4:9)*(G%J(x-s, y  , z  )*G%metricz(x-s, y  , z  , 1))) &
-               !     + cby(s)*( &
-               !          F%F%F(x  , y+s, z  , 4:9)*(G%J(x  , y+s, z  )*G%metricz(x  , y+s, z  , 2))- &
-               !          F%F%F(x  , y-s, z  , 4:9)*(G%J(x  , y-s, z  )*G%metricz(x  , y-s, z  , 2))) &
-               !     + cbz(s)*( &
-               !          F%F%F(x  , y  , z+s, 4:9)*(G%J(x  , y  , z+s)*G%metricz(x  , y  , z+s, 3))- &
-               !          F%F%F(x  , y  , z-s, 4:9)*(G%J(x  , y  , z-s)*G%metricz(x  , y  , z-s, 3)))
-
-               !  end do
-
-               ! From curvilinear case
+                
                 do s = -2,3
-
-                    DFx(1:3) = DFx(1:3) &
-                         &+G%metricx(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
-                         &+G%metricx(x, y, z, 2)*cfx(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
-                         &+G%metricx(x, y, z, 3)*cfx(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
- 
-                    DFx(4:9) =DFx(4:9) &
- 
-                         &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) * G%metricx(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
-                         &+cbx(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricx(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
-                         &+cbx(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricx(x, y, z+s-1, 3)*G%J(x, y, z+s-1)! backwad difference for stress field
-                    !==========================================================
- 
-                    DFy(1:3) = DFy(1:3) &
-                         &+G%metricy(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
-                         &+G%metricy(x, y, z, 2)*cfx(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
-                         &+G%metricy(x, y, z, 3)*cfx(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
- 
-                    DFy(4:9) =DFy(4:9) &
- 
-                         &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) * G%metricy(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
-                         &+cbx(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricy(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
-                         &+cbx(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricy(x, y, z+s-1, 3)*G%J(x, y, z+s-1)
-                    !==========================================================
- 
-
-                    DFz(1:3) = DFz(1:3) &
-                         &+G%metricz(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
-                         &+G%metricz(x, y, z, 2)*cfx(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
-                         &+G%metricz(x, y, z, 3)*cfx(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
- 
-                    DFz(4:9) =DFz(4:9) &
- 
-                         &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) *G%metricz(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
-                         &+cbx(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricz(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
-                         &+cbx(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricz(x, y, z+s-1, 3)*G%J(x, y, z+s-1)!
-                    
-                        
-                 end do
-
+                   
+                   DFx(1:3) = DFx(1:3) &
+                        &+G%metricx(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
+                        &+G%metricx(x, y, z, 2)*cfy(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
+                        &+G%metricx(x, y, z, 3)*cfz(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
+                   
+                   DFx(4:9) =DFx(4:9) &
+                        &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) * G%metricx(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
+                        &+cby(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricx(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
+                        &+cbz(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricx(x, y, z+s-1, 3)*G%J(x, y, z+s-1)! backwad difference for stress field
+                   !==========================================================
+                   
+                   DFy(1:3) = DFy(1:3) &
+                        &+G%metricy(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
+                        &+G%metricy(x, y, z, 2)*cfy(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
+                        &+G%metricy(x, y, z, 3)*cfz(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
+                   
+                   DFy(4:9) =DFy(4:9) &
+                        &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) * G%metricy(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
+                        &+cby(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricy(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
+                        &+cbz(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricy(x, y, z+s-1, 3)*G%J(x, y, z+s-1)
+                   !==========================================================
+                   
+                   
+                   DFz(1:3) = DFz(1:3) &
+                        &+G%metricz(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
+                        &+G%metricz(x, y, z, 2)*cfy(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
+                        &+G%metricz(x, y, z, 3)*cfz(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
+                   
+                   DFz(4:9) =DFz(4:9) &
+                        &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) *G%metricz(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
+                        &+cby(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricz(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
+                        &+cbz(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricz(x, y, z+s-1, 3)*G%J(x, y, z+s-1)!
+                   
+                   
+                end do
+                
                 a1 = 1.0_wp/(M%M(x, y, z, 3)*G%J(x,y,z)) ! 1/(rho*J)
                 a2 = (2.0_wp*M%M(x, y, z, 2) + M%M(x, y, z, 1)) ! (lambda+2*mu)
                 a3 = M%M(x, y, z, 1) ! lambda
                 a4 = M%M(x, y, z, 2) ! mu
-
+                
                 F%F%DF(x, y, z, 1) = F%F%DF(x,y,z,1) + a1*(DFx(4) + DFy(7) + DFz(8))
                 F%F%DF(x, y, z, 2) = F%F%DF(x,y,z,2) + a1*(DFx(7) + DFy(5) + DFz(9))
                 F%F%DF(x, y, z, 3) = F%F%DF(x,y,z,3) + a1*(DFx(8) + DFy(9) + DFz(6))
-
+                
                 F%F%DF(x, y, z, 4) = F%F%DF(x,y,z,4) + a2*DFx(1) + a3*(DFy(2) + DFz(3))
                 F%F%DF(x, y, z, 5) = F%F%DF(x,y,z,5) + a2*DFy(2) + a3*(DFx(1) + DFz(3))
                 F%F%DF(x, y, z, 6) = F%F%DF(x,y,z,6) + a2*DFz(3) + a3*(DFx(1) + DFy(2))
-
+                
                 F%F%DF(x, y, z, 7) = F%F%DF(x,y,z,7) + a4*(DFy(1) + DFx(2))
                 F%F%DF(x, y, z, 8) = F%F%DF(x,y,z,8) + a4*(DFz(1) + DFx(3))
                 F%F%DF(x, y, z, 9) = F%F%DF(x,y,z,9) + a4*(DFz(2) + DFy(3))
-
+                
              end do
           end do
        end do
 
     case('cartesian') ! carteian mesh
-
-     !print *, 'interior'
-
+       !print *, 'interior'
+       
        do z = mz, pz
           do y = my, py
              do x = mx, px
@@ -1974,7 +2545,242 @@ contains
 
     end select
 
-  end subroutine JJU_x6_interior_upwind
+  end subroutine JJU_x5_interior_upwind
+
+
+  subroutine JJU_x6_interior_upwind(F, G, M, type_of_mesh)
+     use datatypes, only: block_type, block_fields, block_grid_t, block_material
+ 
+     implicit none
+ 
+     !=================================================================================================
+     !
+     !type(block_fields), intent(inout):: F
+     type(block_type), intent(inout):: F
+     type(block_grid_t), intent(in) :: G
+     type(block_material), intent(in) :: M
+ 
+     character(len=64), intent(in) :: type_of_mesh
+ 
+     integer :: mx, my, mz, px, py, pz, nx, ny, nz, n
+     real(kind = wp) :: hx, hy, hz                           ! spatial steps discertizing the unit cube
+ 
+     integer :: x,y,z,s, iz, fz, iy, fy, ix, fx
+ 
+     real(kind = wp),parameter :: cf(1:6) = (/  0.05_wp,  -0.5_wp, -1.0_wp/3.00_wp, 1.0_wp, -0.25_wp, 1.0_wp/30.0_wp /) ! forward  FD coefficients 
+     real(kind = wp),parameter :: cb(1:6) = (/ -1.0_wp/30.0_wp, 0.25_wp, -1.0_wp, 1.0_wp/3.0_wp, 0.5_wp, -0.05_wp /) ! backward FD coefficients 
+     real(kind = wp),dimension(1:6) :: cfx,cfy,cfz, cbx,cby,cbz
+     real(kind = wp),dimension(1:9) :: DFx,DFy,DFz
+     real(kind = wp) :: a1,a2,a3,a4
+ 
+ 
+     mx = G%C%mq
+     my = G%C%mr
+     mz = G%C%ms
+     px = G%C%pq
+     py = G%C%pr
+     pz = G%C%ps
+     nx = G%C%nq
+     ny = G%C%nr
+     nz = G%C%ns
+ 
+     n = size(F%F%F, 4)
+ 
+     hx = G%hq
+     hy = G%hr
+     hz = G%hs
+ 
+     cfx = cf/hx; cfy = cf/hy; cfz = cf/hz
+     cbx = cb/hx; cby = cb/hy; cbz = cb/hz
+ 
+ !!$    iz = mz
+ !!$    fz = pz
+ !!$    if (mz == 1) iz = mz + 6
+ !!$    if (pz == nz) fz = pz - 6
+ !!$
+ !!$    iy = my
+ !!$    fy = py
+ !!$    if (my == 1) iy= my + 6
+ !!$    if (py == ny) fy = py - 6
+ !!$
+ !!$    ix = mx
+ !!$    fx = px
+ !!$    if (mx == 1 ) ix = mx + 6
+ !!$    if (px == nx) fx = px - 6
+ !!$
+ !!$    if ((mz == 1) .and. (F%PMLB(5)%pml .EQV. .TRUE.)) iz = mz + max(F%PMLB(5)%N_pml, 6)
+ !!$    if ((pz == nz) .and. (F%PMLB(6)%pml .EQV. .TRUE.)) fz = pz - max(F%PMLB(6)%N_pml, 6)
+ !!$
+ !!$    if ((my == 1) .and. (F%PMLB(3)%pml .EQV. .TRUE.)) iy = my + max(F%PMLB(3)%N_pml, 6)
+ !!$    if ((py == ny) .and. (F%PMLB(4)%pml .EQV. .TRUE.)) fy = py - max(F%PMLB(4)%N_pml, 6)
+ !!$
+ !!$    if ((mx == 1) .and. (F%PMLB(1)%pml .EQV. .TRUE.)) ix = mx + max(F%PMLB(1)%N_pml, 6)
+ !!$    if ((px == nx) .and. (F%PMLB(2)%pml .EQV. .TRUE.)) fx = px - max(F%PMLB(2)%N_pml, 6)
+ 
+ 
+     ix = 6
+     iy = 6
+     iz = 6
+ 
+     fx = 6
+     fy = 6
+     fz = 6
+ 
+     if (F%PMLB(5)%pml .EQV. .TRUE.) iz = max(F%PMLB(5)%N_pml, 6)
+     if (F%PMLB(6)%pml .EQV. .TRUE.) fz = max(F%PMLB(6)%N_pml, 6)
+     
+     if (F%PMLB(3)%pml .EQV. .TRUE.) iy = max(F%PMLB(3)%N_pml, 6)
+     if (F%PMLB(4)%pml .EQV. .TRUE.) fy = max(F%PMLB(4)%N_pml, 6)
+     
+     if (F%PMLB(1)%pml .EQV. .TRUE.) ix = max(F%PMLB(1)%N_pml, 6)
+     if (F%PMLB(2)%pml .EQV. .TRUE.) fx = max(F%PMLB(2)%N_pml, 6)
+ 
+     select case(type_of_mesh)
+ 
+     case('curvilinear') ! locked or welded interface    
+ 
+        do z = mz, pz
+           do y = my, py
+              do x = mx, px
+                 
+                 
+                 ! cycle if an interior point
+                 if (((iz+1 > z) .or. (z > nz - fz)) .or. &
+                      ((iy+1 > y) .or. (y > ny - fy)) .or. &
+                      ((ix+1 > x) .or. (x > nx - fx))) cycle
+                 
+                 DFx = 0.0_wp; DFy = 0.0_wp; DFz = 0.0_wp
+                 
+                 do s = -2,3
+                    
+                    DFx(1:3) = DFx(1:3) &
+                         &+G%metricx(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
+                         &+G%metricx(x, y, z, 2)*cfy(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
+                         &+G%metricx(x, y, z, 3)*cfz(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
+                    
+                    DFx(4:9) =DFx(4:9) &
+                         &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) * G%metricx(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
+                         &+cby(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricx(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
+                         &+cbz(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricx(x, y, z+s-1, 3)*G%J(x, y, z+s-1)! backwad difference for stress field
+                    !==========================================================
+                    
+                    DFy(1:3) = DFy(1:3) &
+                         &+G%metricy(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
+                         &+G%metricy(x, y, z, 2)*cfy(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
+                         &+G%metricy(x, y, z, 3)*cfz(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
+                    
+                    DFy(4:9) =DFy(4:9) &
+                         &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) * G%metricy(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
+                         &+cby(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricy(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
+                         &+cbz(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricy(x, y, z+s-1, 3)*G%J(x, y, z+s-1)
+                    !==========================================================
+                    
+                    
+                    DFz(1:3) = DFz(1:3) &
+                         &+G%metricz(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) &
+                         &+G%metricz(x, y, z, 2)*cfy(s+3)*(F%F%F(x, y+s  , z  , 1:3)  ) &
+                         &+G%metricz(x, y, z, 3)*cfz(s+3)*(F%F%F(x, y  , z+s  , 1:3) )  ! forward difference for velocity field
+                    
+                    DFz(4:9) =DFz(4:9) &
+                         &+cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) *G%metricz(x+s-1, y, z, 1)*G%J(x+s-1,y,z) &
+                         &+cby(s+3)*(F%F%F(x, y+s-1  , z  , 4:9) ) * G%metricz(x, y+s-1, z, 2)* G%J(x,y+s-1,z) &
+                         &+cbz(s+3)*(F%F%F(x, y  , z+s-1  , 4:9) ) * G%metricz(x, y, z+s-1, 3)*G%J(x, y, z+s-1)!
+                    
+                    
+                 end do
+                 
+                 a1 = 1.0_wp/(M%M(x, y, z, 3)*G%J(x,y,z)) ! 1/(rho*J)
+                 a2 = (2.0_wp*M%M(x, y, z, 2) + M%M(x, y, z, 1)) ! (lambda+2*mu)
+                 a3 = M%M(x, y, z, 1) ! lambda
+                 a4 = M%M(x, y, z, 2) ! mu
+                 
+                 F%F%DF(x, y, z, 1) = F%F%DF(x,y,z,1) + a1*(DFx(4) + DFy(7) + DFz(8))
+                 F%F%DF(x, y, z, 2) = F%F%DF(x,y,z,2) + a1*(DFx(7) + DFy(5) + DFz(9))
+                 F%F%DF(x, y, z, 3) = F%F%DF(x,y,z,3) + a1*(DFx(8) + DFy(9) + DFz(6))
+                 
+                 F%F%DF(x, y, z, 4) = F%F%DF(x,y,z,4) + a2*DFx(1) + a3*(DFy(2) + DFz(3))
+                 F%F%DF(x, y, z, 5) = F%F%DF(x,y,z,5) + a2*DFy(2) + a3*(DFx(1) + DFz(3))
+                 F%F%DF(x, y, z, 6) = F%F%DF(x,y,z,6) + a2*DFz(3) + a3*(DFx(1) + DFy(2))
+                 
+                 F%F%DF(x, y, z, 7) = F%F%DF(x,y,z,7) + a4*(DFy(1) + DFx(2))
+                 F%F%DF(x, y, z, 8) = F%F%DF(x,y,z,8) + a4*(DFz(1) + DFx(3))
+                 F%F%DF(x, y, z, 9) = F%F%DF(x,y,z,9) + a4*(DFz(2) + DFy(3))
+                 
+              end do
+           end do
+        end do
+ 
+     case('cartesian') ! carteian mesh
+        !print *, 'interior'
+        
+        do z = mz, pz
+           do y = my, py
+              do x = mx, px
+ 
+                 if (((iz+1 > z) .or. (z > nz - fz)) .or. &
+                   ((iy+1 > y) .or. (y > ny - fy)) .or. &
+                   ((ix+1 > x) .or. (x > nx - fx))) cycle
+                 
+                 DFx = 0.0_wp; DFy = 0.0_wp; DFz = 0.0_wp
+ 
+                 do s = -2,3
+ 
+                    DFx(1:3) = DFx(1:3) &
+                         &+G%metricx(x, y, z, 1)*cfx(s+3)*(F%F%F(x+s, y  , z  , 1:3) ) ! forward difference for velocity field
+ 
+                    DFx(4:9) =DFx(4:9) &
+ 
+                         &+G%metricx(x, y, z, 1)*cbx(s+3)*(F%F%F(x+s-1, y  , z  , 4:9) ) ! backwad difference for stress field
+                    !==========================================================
+ 
+                    DFy(1:3) = DFy(1:3) &
+                         &+G%metricy(x, y, z, 2)*cfy(s+3)*(F%F%F(x  , y+s, z , 1:3) )  ! forward difference for velocity field
+ 
+                    DFy(4:9) = DFy(4:9) &
+                    
+                         &+G%metricy(x, y, z, 2)*cby(s+3)*(F%F%F(x  , y+s-1, z , 4:9) ) ! backward difference for velocity field
+                    !==========================================================
+  
+ 
+                    DFz(1:3) = DFz(1:3) &
+                         &+G%metricz(x, y, z, 3)*cfz(s+3)*(F%F%F(x  , y  , z+s, 1:3))   ! forward difference for velocity field
+ 
+                    DFz(4:9) = DFz(4:9) &
+ 
+                         &+G%metricz(x, y, z, 3)*cbz(s+3)*(F%F%F(x  , y  , z+s-1, 4:9))   ! backward difference for velocity field
+                    
+                        
+                 end do
+ 
+                 a1 = 1.0_wp/(M%M(x, y, z, 3)) ! 1/(rho*J)
+ 
+                 a2 = (2.0_wp*M%M(x, y, z, 2) + M%M(x, y, z, 1)) ! (lambda+2*mu)
+ 
+                 a3 = M%M(x, y, z, 1) ! lambda
+ 
+                 a4 = M%M(x, y, z, 2) ! mu
+ 
+ 
+                 F%F%DF(x, y, z, 1) = F%F%DF(x,y,z,1) + a1*(DFx(4) + DFy(7) + DFz(8))
+                 F%F%DF(x, y, z, 2) = F%F%DF(x,y,z,2) + a1*(DFx(7) + DFy(5) + DFz(9))
+                 F%F%DF(x, y, z, 3) = F%F%DF(x,y,z,3) + a1*(DFx(8) + DFy(9) + DFz(6))
+ 
+                 F%F%DF(x, y, z, 4) = F%F%DF(x,y,z,4) + a2*DFx(1) + a3*(DFy(2) + DFz(3))
+                 F%F%DF(x, y, z, 5) = F%F%DF(x,y,z,5) + a2*DFy(2) + a3*(DFx(1) + DFz(3))
+                 F%F%DF(x, y, z, 6) = F%F%DF(x,y,z,6) + a2*DFz(3) + a3*(DFx(1) + DFy(2))
+ 
+                 F%F%DF(x, y, z, 7) = F%F%DF(x,y,z,7) + a4*(DFy(1) + DFx(2))
+                 F%F%DF(x, y, z, 8) = F%F%DF(x,y,z,8) + a4*(DFz(1) + DFx(3))
+                 F%F%DF(x, y, z, 9) = F%F%DF(x,y,z,9) + a4*(DFz(2) + DFy(3))
+ 
+              end do
+           end do
+        end do
+ 
+     end select
+ 
+   end subroutine JJU_x6_interior_upwind
+ 
 
 
   

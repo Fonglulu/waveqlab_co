@@ -1,7 +1,7 @@
 ! waveqlab3d input file: test problem for mms on cartesian grid
 
 &problem_list
- name = 'data/test_topo_upw_3', 
+ name = 'data/test_topo_upwpml_j_2', 
  response = 'elastic',
  problem = 'TPV5',
  nblocks = 2,

@@ -1,11 +1,11 @@
 ! waveqlab3d input file: test problem for mms on cartesian grid
 
 &problem_list
- name = 'data/Loh_topo_upw_2', 
+ name = 'data/Loh_topo_upw_12pml_50m', 
  response = 'elastic',
  problem = 'TPV5',
  nblocks = 2,
- t_final =3d0, 
+ t_final =20d0, 
  CFL = 0.5d0,
  coupling = 'locked',
  fd_type = 'upwind',
@@ -18,15 +18,15 @@
  w_fault = F /
 
 &block_list
-btp(1)%nqrs = 12, 181, 181,
-btp(1)%aqrs = 0d0, -3d0, -3d0,
-btp(1)%bqrs =   1d0, 15d0, 15d0,
+btp(1)%nqrs = 21, 401, 401,
+btp(1)%aqrs = 0d0, -4d0, -4d0,
+btp(1)%bqrs =   1d0, 16d0, 16d0,
 btp(1)%rho_s_p = 2.6d0, 2d0, 4d0,
 btp(1)%lqrs = 2, 1, 1,
 btp(1)%rqrs = 0, 1, 1,
-btp(1)%pml_lqrs = F, F, F,
-btp(1)%pml_rqrs = F, F, F,
-btp(1)%npml = 12,
+btp(1)%pml_lqrs = F, T, T,
+btp(1)%pml_rqrs = F, T, T,
+btp(1)%npml = 24,
 btp(1)%lc = 1d0,
 btp(1)%rc = 0d0,
 btp(1)%profile_type= 'no_path', !'read_from_memomry_fractal',
@@ -40,15 +40,16 @@ btp(1)%material_path(3) = '/home/kduru/Material/OK_homog_rho_B1',
 
 
 
-btp(2)%nqrs = 91, 181, 181,
-btp(2)%aqrs = 1d0, -5d0, -5d0,
-btp(2)%bqrs = 10d0, 15d0,  15d0,
+
+btp(2)%nqrs = 61, 401, 401,
+btp(2)%aqrs = 1d0, -4d0, -4d0,
+btp(2)%bqrs = 4d0, 16d0,  16d0,
 btp(2)%rho_s_p = 2.7d0, 3.464d0, 6d0,
 btp(2)%lqrs = 0, 1, 1,
 btp(2)%rqrs = 1, 1, 1,
-btp(2)%pml_lqrs = F, F, F,
-btp(2)%pml_rqrs = F, F, F,
-btp(2)%npml = 12,
+btp(2)%pml_lqrs = F, T, T,
+btp(2)%pml_rqrs = T, T, T,
+btp(2)%npml = 24,
 btp(2)%lc = 0d0,
 btp(2)%rc = 1d0,
 btp(2)%profile_type=  'no_path', !'read_from_memomry_fractal',
